@@ -33,3 +33,11 @@ While the baseline paper assumes the network has perfect knowledge of the eavesd
 pls_env\Scripts\activate
 # Mac/Linux:
 source pls_env/bin/activate
+
+pip install -r requirements.txt
+
+pip install -r requirements.txt --trusted-host pypi.org --trusted-host files.pythonhosted.org
+
+python train.py
+
+python test.py
