@@ -1,4 +1,14 @@
-pls_env/
+# Python
+venv/
 __pycache__/
 *.pyc
+
+# Trained model weights
 models/*.zip
+
+# Local-only docs (keep off GitHub)
+docs/
+.claude/
+
+# Results (generated after training)
+results/

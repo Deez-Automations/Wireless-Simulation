@@ -2,10 +2,9 @@
 test.py
 Evaluates trained models and generates all comparison plots:
 
-  Plot 1 — Sum secrecy capacity vs. number of APs  (matches paper Fig 3)
-  Plot 2 — Sum secrecy capacity vs. Eve CSI noise   (your novel result)
-  Plot 3 — Secrecy ratio vs. Eve CSI noise
-  Plot 4 — Comparison table: Normal WiFi / Smart AP / RL-CFJ baseline /
+  Plot 1 — Sum secrecy capacity vs. Eve CSI noise   (your novel result)
+  Plot 2 — Secrecy ratio vs. Eve CSI noise
+  Plot 3 — Comparison table: Normal WiFi / Smart AP / RL-CFJ baseline /
             RL-CFJ with imperfect CSI
 """
 
@@ -13,7 +12,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from stable_baselines3 import SAC
-from cfj_env import WirelessJammingEnv
+from env.cfj_env import WirelessJammingEnv
 
 os.makedirs("results", exist_ok=True)
 
@@ -69,44 +68,6 @@ def evaluate_fixed(env, power_mode: str, n_episodes: int = N_EVAL_EPISODES):
         ratios.append(metrics["secrecy_ratio"] * 100)
 
     return {"sum_secrecy": np.mean(sums), "secrecy_ratio": np.mean(ratios)}
-
-
-# ──────────────────────────────────────────────────────────────────────
-# PLOT 1: Sum secrecy capacity vs. number of APs
-#         Reproduces paper Figure 3 in aggregated form
-# ──────────────────────────────────────────────────────────────────────
-print("Plot 1: Secrecy capacity vs. number of APs")
-
-ap_counts     = [4, 5, 7, 9, 13]
-normal_wifi   = []
-rl_cfj        = []
-
-for n_aps in ap_counts:
-    env_test = WirelessJammingEnv(num_aps=n_aps, num_users=2, num_eves=1,
-                                   csi_noise_std=0.0)
-    # Normal WiFi baseline
-    fw = evaluate_fixed(env_test, "uniform")
-    normal_wifi.append(fw["sum_secrecy"])
-
-    # Try to load trained model; fall back to untrained if not found
-    try:
-        model = SAC.load(f"models/sac_noise_0.0", env=env_test)
-        rl = evaluate_model(model, env_test)
-        rl_cfj.append(rl["sum_secrecy"])
-    except Exception:
-        rl_cfj.append(fw["sum_secrecy"] * 1.5)  # placeholder if not trained
-
-fig, ax = plt.subplots(figsize=(7, 4.5))
-ax.plot(ap_counts, normal_wifi, "b-o",  ms=6, label="Normal Wi-Fi")
-ax.plot(ap_counts, rl_cfj,      "r-s",  ms=6, label="RL-Based CFJ (perfect CSI)")
-ax.set_xlabel("Number of APs", fontsize=12)
-ax.set_ylabel("Sum Secrecy Capacity (bps/Hz)", fontsize=12)
-ax.set_title("Sum Secrecy Capacity vs. Number of APs", fontsize=11)
-ax.legend(fontsize=10)
-ax.grid(True, alpha=0.3)
-plt.tight_layout()
-plt.savefig("results/plot1_secrecy_vs_aps.png", dpi=150)
-print("  Saved: results/plot1_secrecy_vs_aps.png")
 
 
 # ──────────────────────────────────────────────────────────────────────
