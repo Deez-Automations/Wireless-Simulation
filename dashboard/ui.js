@@ -36,7 +36,7 @@ const UI = (() => {
       if (!fill) return;
       const pct = Math.min(sec / MAX_BAR * 100, 100);
       fill.style.width = pct + '%';
-      fill.style.background = sec > 0 ? '#00e676' : '#ff5252';
+      fill.style.background = sec > 0 ? '#34d399' : '#71717a';
       lbl.textContent = sec.toFixed(3) + ' bps/Hz';
     });
 

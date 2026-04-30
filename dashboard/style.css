@@ -3,22 +3,21 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg:        #04040e;
-  --panel:     #080818;
-  --panel2:    #0d0d22;
-  --panel3:    #111128;
-  --border:    rgba(80,100,255,0.1);
-  --border2:   rgba(80,100,255,0.2);
-  --accent:    #4f8fff;
-  --accent2:   #00d4ff;
-  --text:      #e2e6ff;
-  --text2:     #a0a8cc;
-  --muted:     #505880;
-  --green:     #00e676;
-  --green2:    #00c853;
-  --red:       #ff5252;
-  --yellow:    #ffd32a;
-  --panel-w:   320px;
+  --bg:        #09090b; /* Zinc 950 */
+  --panel:     #18181b; /* Zinc 900 */
+  --panel2:    #27272a; /* Zinc 800 */
+  --panel3:    #3f3f46; /* Zinc 700 */
+  --border:    rgba(255,255,255,0.08);
+  --border2:   rgba(255,255,255,0.12);
+  --accent:    #818cf8; /* Indigo 400 */
+  --accent2:   #6366f1; /* Indigo 500 */
+  --text:      #f4f4f5; /* Zinc 100 */
+  --text2:     #a1a1aa; /* Zinc 400 */
+  --muted:     #71717a; /* Zinc 500 */
+  --green:     #34d399; /* Emerald 400 */
+  --red:       #f43f5e; /* Rose 500 */
+  --yellow:    #fbbf24; /* Amber 400 */
+  --panel-w:   340px;
 }
 
 body {
@@ -34,7 +33,7 @@ body {
 /* ── Header ──────────────────────────────────── */
 header {
   flex-shrink: 0;
-  background: linear-gradient(180deg, #0a0a20 0%, #060614 100%);
+  background: var(--panel);
   border-bottom: 1px solid var(--border);
   padding: 0 28px;
   height: 54px;
@@ -42,13 +41,6 @@ header {
   align-items: center;
   justify-content: space-between;
   position: relative;
-}
-header::after {
-  content: '';
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(0,212,255,0.3), transparent);
 }
 .hdr-left { display: flex; align-items: center; gap: 14px; }
 .hdr-icon {
@@ -62,14 +54,14 @@ header::after {
 .hdr-text h1 { font-size: 13px; font-weight: 600; color: var(--text); letter-spacing: .02em; }
 .hdr-text p  { font-size: 10px; color: var(--muted); margin-top: 1px; letter-spacing: .03em; }
 .badge {
-  border: 1px solid rgba(0,212,255,0.3);
-  background: rgba(0,212,255,0.07);
-  color: var(--accent2);
-  border-radius: 20px;
-  padding: 5px 14px;
+  border: 1px solid rgba(99,102,241,0.3);
+  background: rgba(99,102,241,0.1);
+  color: var(--accent);
+  border-radius: 4px;
+  padding: 4px 10px;
   font-size: 9px;
-  font-weight: 700;
-  letter-spacing: .12em;
+  font-weight: 600;
+  letter-spacing: .05em;
   text-transform: uppercase;
   display: flex; align-items: center; gap: 6px;
 }
@@ -102,18 +94,15 @@ header::after {
   justify-content: center;
   gap: 14px;
   padding: 20px;
-  background: radial-gradient(ellipse at 50% 50%, #0a0a1e 0%, #04040e 100%);
+  background: var(--bg);
   border-right: 1px solid var(--border);
   overflow: hidden;
 }
 #simCanvas {
-  border-radius: 12px;
+  border-radius: 8px;
   max-width: 100%;
   max-height: 100%;
-  box-shadow:
-    0 0 0 1px rgba(79,143,255,0.12),
-    0 0 40px rgba(0,0,0,0.8),
-    0 0 80px rgba(10,10,40,0.5);
+  border: 1px solid var(--border);
 }
 .toolbar { display: flex; gap: 8px; }
 .btn {
@@ -199,10 +188,9 @@ header::after {
   background: var(--panel3);
 }
 .mode-btn.active {
-  background: linear-gradient(135deg, rgba(79,143,255,0.2), rgba(0,212,255,0.08));
-  border-color: rgba(79,143,255,0.45);
-  color: var(--accent2);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 0 12px rgba(79,143,255,0.12);
+  background: rgba(129,140,248,0.1);
+  border-color: var(--accent);
+  color: var(--text);
 }
 
 /* ── CSI Contribution block ─────────────────── */
@@ -212,13 +200,13 @@ header::after {
 }
 .contrib-tag {
   font-size: 8px;
-  font-weight: 700;
-  letter-spacing: .1em;
+  font-weight: 600;
+  letter-spacing: .05em;
   text-transform: uppercase;
-  background: linear-gradient(90deg, rgba(255,211,42,0.15), rgba(255,140,0,0.1));
-  border: 1px solid rgba(255,211,42,0.25);
-  color: var(--yellow);
-  padding: 2px 8px;
+  background: rgba(244,63,94,0.1);
+  border: 1px solid rgba(244,63,94,0.2);
+  color: var(--red);
+  padding: 2px 6px;
   border-radius: 4px;
 }
 
@@ -251,39 +239,33 @@ input[type=range] {
   cursor: pointer;
 }
 input[type=range].noise-sl {
-  background: linear-gradient(90deg, #1a3a1a 0%, #ffd32a 100%);
+  background: linear-gradient(90deg, var(--panel3) 0%, var(--red) 100%);
 }
 input[type=range].power-sl {
-  background: linear-gradient(90deg, rgba(30,30,60,0.8), var(--accent));
+  background: linear-gradient(90deg, var(--panel3), var(--accent));
 }
 input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 14px; height: 14px;
+  width: 12px; height: 12px;
   border-radius: 50%;
   background: #fff;
-  box-shadow: 0 0 0 2px rgba(79,143,255,0.4), 0 0 10px rgba(79,143,255,0.5);
   cursor: pointer;
-  transition: box-shadow .15s;
-}
-input[type=range]:hover::-webkit-slider-thumb {
-  box-shadow: 0 0 0 3px rgba(79,143,255,0.5), 0 0 16px rgba(79,143,255,0.6);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.5);
 }
 input[type=range].noise-sl::-webkit-slider-thumb {
-  box-shadow: 0 0 0 2px rgba(255,211,42,0.4), 0 0 10px rgba(255,211,42,0.4);
+  box-shadow: 0 0 0 2px rgba(244,63,94,0.4);
 }
 
 /* ── CSI info box ────────────────────────────── */
 .csi-box {
-  background: rgba(255,211,42,0.04);
-  border: 1px solid rgba(255,211,42,0.18);
-  border-radius: 8px;
-  padding: 10px 13px;
-  margin-top: 11px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  color: var(--yellow);
-  line-height: 1.6;
-  letter-spacing: .01em;
+  background: rgba(244,63,94,0.05);
+  border: 1px solid rgba(244,63,94,0.15);
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-top: 12px;
+  font-size: 11px;
+  color: var(--red);
+  line-height: 1.5;
 }
 
 /* ── Metric cards ────────────────────────────── */
@@ -318,10 +300,10 @@ input[type=range].noise-sl::-webkit-slider-thumb {
   font-family: 'JetBrains Mono', monospace;
   line-height: 1;
 }
-.metric-value.green  { color: var(--green); text-shadow: 0 0 14px rgba(0,230,118,0.3); }
-.metric-value.yellow { color: var(--yellow); text-shadow: 0 0 14px rgba(255,211,42,0.25); }
-.metric-value.red    { color: var(--red); text-shadow: 0 0 14px rgba(255,82,82,0.25); }
-.metric-value.blue   { color: var(--accent2); text-shadow: 0 0 14px rgba(0,212,255,0.25); }
+.metric-value.green  { color: var(--green); }
+.metric-value.yellow { color: var(--yellow); }
+.metric-value.red    { color: var(--red); }
+.metric-value.blue   { color: var(--accent); }
 
 /* ── Per-user bars ───────────────────────────── */
 .user-bars { display: flex; flex-direction: column; gap: 12px; }

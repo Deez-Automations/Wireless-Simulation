@@ -6,18 +6,18 @@
 const RENDERER = (() => {
   const PAD    = 30;
   const COLORS = {
-    bg:           '#06060f',
-    gridLine:     'rgba(255,255,255,0.04)',
-    ap:           '#00d4ff',
-    apGlow:       'rgba(0,212,255,0.35)',
-    userSecure:   '#00e676',
-    userInsecure: '#ff5252',
-    trueEve:      '#ff4757',
-    percEve:      '#ffd32a',
-    conn:         'rgba(255,255,255,0.2)',
-    csiLine:      'rgba(255,211,42,0.6)',
-    label:        '#e0e0ff',
-    labelMuted:   '#7070a0',
+    bg:           '#09090b', // Zinc 950
+    gridLine:     'rgba(255,255,255,0.03)',
+    ap:           '#e4e4e7', // Zinc 200
+    apGlow:       'rgba(255,255,255,0.05)',
+    userSecure:   '#34d399', // Emerald 400
+    userInsecure: '#71717a', // Zinc 500
+    trueEve:      '#f43f5e', // Rose 500
+    percEve:      '#fb7185', // Rose 400
+    conn:         'rgba(129,140,248,0.2)', // Indigo 400
+    csiLine:      'rgba(244,63,94,0.4)',
+    label:        '#a1a1aa', // Zinc 400
+    labelMuted:   '#52525b', // Zinc 600
   };
 
   let canvas, ctx, W, H, scale;
@@ -94,20 +94,11 @@ const RENDERER = (() => {
         const val = data[row * gridRes + col];
         const t   = Math.min(val / maxVal, 1);
 
-        // Color: dark red → orange → yellow → green
-        let r, g, b;
-        if (t < 0.5) {
-          const f = t / 0.5;
-          r = Math.round(180 + f * 75);
-          g = Math.round(20 + f * 100);
-          b = 20;
-        } else {
-          const f = (t - 0.5) / 0.5;
-          r = Math.round(255 - f * 210);
-          g = Math.round(120 + f * 110);
-          b = Math.round(f * 30);
-        }
-        const alpha = Math.round(180 * t + 20);
+        // Color: Monochromatic Indigo scale (e.g. Indigo 500: #6366f1)
+        const r = 99;
+        const g = 102;
+        const b = 241;
+        const alpha = Math.round(150 * t);
 
         // Fill rectangle in ImageData
         const px0 = Math.round(PAD + col * cellW);
@@ -172,6 +163,17 @@ const RENDERER = (() => {
     ctx.font = '10px JetBrains Mono, monospace';
     ctx.textAlign = 'center';
     ctx.fillText(`${errDist}m`, midX, midY - 6);
+
+    // Uncertainty Ring (visualizing the math: sigma * scale)
+    ctx.beginPath();
+    ctx.arc(t.x, t.y, csiNoiseSigma * scale, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(244,63,94,0.15)'; // faint Rose
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(244,63,94,0.03)';
+    ctx.fill();
   }
 
   // --- Draw a glowing circle ---
@@ -216,18 +218,32 @@ const RENDERER = (() => {
     aps.forEach((ap, i) => {
       const c   = toCanvas(ap);
       const pwr = (mode === 'rl') ? powers[i] : 1.0;
-      drawGlowCircle(c.x, c.y, 10, COLORS.ap, COLORS.apGlow, 15 + pwr * 20);
+      
+      // Hollow ring for AP
+      ctx.strokeStyle = COLORS.ap;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, 8, 0, Math.PI * 2);
+      ctx.stroke();
+      
+      // Solid center
+      ctx.fillStyle = COLORS.bg;
+      ctx.fill();
+      ctx.fillStyle = COLORS.ap;
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, 3, 0, Math.PI * 2);
+      ctx.fill();
 
       // AP label
-      ctx.fillStyle  = '#e0e0ff';
-      ctx.font       = 'bold 9px Inter, sans-serif';
+      ctx.fillStyle  = COLORS.label;
+      ctx.font       = '600 9px Inter, sans-serif';
       ctx.textAlign  = 'center';
-      ctx.fillText(`AP${i + 1}`, c.x, c.y - 17);
+      ctx.fillText(`AP${i + 1}`, c.x, c.y - 14);
 
       if (mode === 'rl') {
-        ctx.fillStyle = 'rgba(0,212,255,0.8)';
+        ctx.fillStyle = COLORS.labelMuted;
         ctx.font      = '8px JetBrains Mono, monospace';
-        ctx.fillText(`${pwr.toFixed(2)}W`, c.x, c.y + 22);
+        ctx.fillText(`${pwr.toFixed(2)}W`, c.x, c.y + 20);
       }
     });
 
@@ -236,50 +252,58 @@ const RENDERER = (() => {
       const c       = toCanvas(u);
       const secure  = result && result.perUserSecrecy[k] > 0;
       const color   = secure ? COLORS.userSecure : COLORS.userInsecure;
-      const glow    = secure ? 'rgba(0,230,118,0.5)' : 'rgba(255,82,82,0.5)';
-      drawGlowCircle(c.x, c.y, 8, color, glow, 18);
-      ctx.fillStyle = '#e0e0ff';
-      ctx.font      = 'bold 9px Inter, sans-serif';
+      const glow    = secure ? 'rgba(52,211,153,0.3)' : 'rgba(113,113,122,0.3)';
+      drawGlowCircle(c.x, c.y, 6, color, glow, 12);
+      
+      ctx.fillStyle = COLORS.label;
+      ctx.font      = '600 9px Inter, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(`U${k + 1}`, c.x, c.y - 15);
+      ctx.fillText(`U${k + 1}`, c.x, c.y - 12);
       if (result) {
         ctx.fillStyle = color;
         ctx.font      = '8px JetBrains Mono, monospace';
-        ctx.fillText(`${result.perUserSecrecy[k].toFixed(2)}`, c.x, c.y + 20);
+        ctx.fillText(`${result.perUserSecrecy[k].toFixed(2)}`, c.x, c.y + 18);
       }
     });
 
     // True Eve
     const te = toCanvas(trueEve);
-    drawRing(te.x, te.y, 8, COLORS.trueEve);
-    drawGlowCircle(te.x, te.y, 8, COLORS.trueEve, 'rgba(255,71,87,0.6)', 20);
+    drawGlowCircle(te.x, te.y, 6, COLORS.trueEve, 'rgba(244,63,94,0.4)', 15);
     ctx.fillStyle = COLORS.trueEve;
-    ctx.font      = 'bold 9px Inter, sans-serif';
+    ctx.font      = '600 9px Inter, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('EVE', te.x, te.y - 16);
-    ctx.fillStyle = '#ff8a80';
+    ctx.fillText('EVE', te.x, te.y - 12);
+    ctx.fillStyle = COLORS.labelMuted;
     ctx.font      = '8px Inter, sans-serif';
-    ctx.fillText('(true)', te.x, te.y + 20);
+    ctx.fillText('(true)', te.x, te.y + 18);
 
     // Perceived Eve
     if (state.csiNoiseSigma > 0) {
       const pe = toCanvas(perceivedEve);
-      drawGlowCircle(pe.x, pe.y, 7, COLORS.percEve, 'rgba(255,211,42,0.5)', 18);
+      // Hollow dashed ring for perceived eve
+      ctx.strokeStyle = COLORS.percEve;
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([2, 2]);
+      ctx.beginPath();
+      ctx.arc(pe.x, pe.y, 5, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      
       ctx.fillStyle = COLORS.percEve;
       ctx.font      = '8px Inter, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('perceived', pe.x, pe.y + 20);
+      ctx.fillText('perceived', pe.x, pe.y + 16);
     }
   }
 
   // --- Legend overlay ---
   function drawLegend() {
     const items = [
-      { color: '#00d4ff', label: 'Access Point (AP)' },
-      { color: '#00e676', label: 'User (secure)' },
-      { color: '#ff5252', label: 'User (no secrecy)' },
-      { color: '#ff4757', label: 'Eve — true location' },
-      { color: '#ffd32a', label: 'Eve — perceived (noisy)' },
+      { color: '#e4e4e7', label: 'Access Point (AP)' },
+      { color: '#34d399', label: 'User (secure)' },
+      { color: '#71717a', label: 'User (insecure)' },
+      { color: '#f43f5e', label: 'Eve — true location' },
+      { color: '#fb7185', label: 'Eve — perceived (noisy)' },
     ];
     let lx = PAD + 8, ly = H - PAD - 8 - items.length * 16;
     ctx.fillStyle = 'rgba(6,6,15,0.75)';
