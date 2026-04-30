@@ -28,11 +28,11 @@ The robust agent, when tested under real uncertainty, degrades slower and mainta
 
 ## Team
 
-| Name | Roll No. | Role |
-|---|---|---|
-| M. Daniyal | 2023406 | Lead — SAC Agent, Simulation, Training |
-| M. Afeef Bari | 2023356 | Results, Analysis, LaTeX Report |
-| Mahad Aqeel | 2023286 | Channel Simulation Environment |
+| Name | Roll No. |
+|---|---|
+| M. Daniyal | 2023406 |
+| M. Afeef Bari | 2023356 |
+| Mahad Aqeel | 2023286 |
 
 ---
 
