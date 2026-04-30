@@ -1,10 +1,13 @@
 """
 train.py
-Trains two SAC agents:
-  1. Baseline     — perfect Eve CSI   (csi_noise_std = 0)
-  2. Contribution — imperfect Eve CSI (csi_noise_std > 0)
+Trains 4 SAC agents, one per Eve CSI noise level:
+  1. noise = 0.0m  — perfect Eve CSI (paper baseline)
+  2. noise = 2.0m  — slight location uncertainty
+  3. noise = 5.0m  — moderate location uncertainty
+  4. noise = 10.0m — severe location uncertainty (our contribution)
 
-Results are saved to results/ for comparison plotting.
+Models saved to models/sac_noise_<sigma>.zip
+Results (reward curves) saved to results/
 """
 
 import os
