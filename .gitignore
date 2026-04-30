@@ -9,6 +9,3 @@ models/*.zip
 # Local-only docs (keep off GitHub)
 docs/
 .claude/
-
-# Results (generated after training)
-results/

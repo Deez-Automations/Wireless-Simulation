@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CFJ Simulation — Imperfect Eve CSI Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <div class="hdr-left">
+    <h1>Cooperative Friendly Jamming — Interactive Simulation</h1>
+    <p>Imperfect Eavesdropper CSI · Hoseini et al. 2024 + GIKI CY315 · Accurate Friis Physics</p>
+  </div>
+  <div class="badge">LIVE PHYSICS</div>
+</header>
+
+<div class="layout">
+
+  <!-- ══ Canvas ══════════════════════════════════ -->
+  <div class="canvas-area">
+    <canvas id="simCanvas" width="560" height="560"></canvas>
+    <div class="toolbar">
+      <button class="btn active" id="btnHeatmap" onclick="toggleHeatmap()">Heatmap ON</button>
+      <button class="btn" onclick="randomize()">🎲 Randomize</button>
+      <button class="btn" onclick="resetState()">↺ Reset</button>
+    </div>
+  </div>
+
+  <!-- ══ Control Panel ════════════════════════════ -->
+  <div class="panel">
+
+    <!-- Mode -->
+    <div class="section">
+      <div class="sec-title">System Mode</div>
+      <div class="mode-grid">
+        <button class="mode-btn" id="modenormal" onclick="setMode('normal')">Normal<br>Wi-Fi</button>
+        <button class="mode-btn" id="modesmart"  onclick="setMode('smart')">Smart<br>AP</button>
+        <button class="mode-btn active" id="moderl" onclick="setMode('rl')">RL-Based<br>CFJ</button>
+      </div>
+    </div>
+
+    <!-- CSI Noise — Our Contribution -->
+    <div class="section">
+      <div class="sec-title">⚠ Imperfect Eve CSI — Our Contribution</div>
+      <div class="slider-row">
+        <div class="slider-label">
+          <span class="slider-name">Location Uncertainty σ</span>
+          <span class="slider-val" id="noiseVal">0.0 m</span>
+        </div>
+        <input type="range" class="noise-sl" id="noiseSlider"
+               min="0" max="10" step="0.1" value="0"
+               oninput="updateNoise(this.value)">
+      </div>
+      <div class="csi-box" id="csiError">
+        Perfect CSI — exact Eve location known
+      </div>
+    </div>
+
+    <!-- AP Powers (RL mode only) -->
+    <div class="section" id="powerSection">
+      <div class="sec-title">AP Transmit Power (RL Mode)</div>
+      <div class="slider-row">
+        <div class="slider-label">
+          <span class="slider-name">AP 1</span>
+          <span class="slider-val" id="powerVal0">0.80 W</span>
+        </div>
+        <input type="range" class="power-sl" id="powerSlider0"
+               min="0" max="1" step="0.01" value="0.8"
+               oninput="updatePower(0, this.value)">
+      </div>
+      <div class="slider-row">
+        <div class="slider-label">
+          <span class="slider-name">AP 2</span>
+          <span class="slider-val" id="powerVal1">0.80 W</span>
+        </div>
+        <input type="range" class="power-sl" id="powerSlider1"
+               min="0" max="1" step="0.01" value="0.8"
+               oninput="updatePower(1, this.value)">
+      </div>
+      <div class="slider-row">
+        <div class="slider-label">
+          <span class="slider-name">AP 3</span>
+          <span class="slider-val" id="powerVal2">0.80 W</span>
+        </div>
+        <input type="range" class="power-sl" id="powerSlider2"
+               min="0" max="1" step="0.01" value="0.8"
+               oninput="updatePower(2, this.value)">
+      </div>
+      <div class="slider-row">
+        <div class="slider-label">
+          <span class="slider-name">AP 4</span>
+          <span class="slider-val" id="powerVal3">0.80 W</span>
+        </div>
+        <input type="range" class="power-sl" id="powerSlider3"
+               min="0" max="1" step="0.01" value="0.8"
+               oninput="updatePower(3, this.value)">
+      </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="section">
+      <div class="sec-title">Network Metrics</div>
+      <div class="metric-grid">
+        <div class="metric-card">
+          <div class="metric-label">Sum Secrecy</div>
+          <div class="metric-value green" id="metSumSec">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Secrecy Ratio</div>
+          <div class="metric-value green" id="metRatio">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Eve Capacity</div>
+          <div class="metric-value red" id="metEveCap">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">CSI Noise σ</div>
+          <div class="metric-value blue" id="metNoise">0.0m</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Per-user bars -->
+    <div class="section">
+      <div class="sec-title">Per-User Secrecy Capacity</div>
+      <div class="user-bars">
+        <div>
+          <div class="ub-label">
+            <span>User 1</span>
+            <span class="ub-val" id="userLbl0">—</span>
+          </div>
+          <div class="ub-track"><div class="ub-fill" id="userBar0" style="width:0%"></div></div>
+        </div>
+        <div>
+          <div class="ub-label">
+            <span>User 2</span>
+            <span class="ub-val" id="userLbl1">—</span>
+          </div>
+          <div class="ub-track"><div class="ub-fill" id="userBar1" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="section">
+      <div class="sec-title">How to Use</div>
+      <div style="font-size:10px; color:var(--muted); line-height:1.7;">
+        <b style="color:var(--text)">Drag</b> any node to reposition it.<br>
+        <b style="color:var(--text)">Noise slider</b> blurs Eve's location (orange dot).<br>
+        <b style="color:var(--text)">Power sliders</b> tune each AP (RL mode).<br>
+        <b style="color:var(--text)">Heatmap</b> shows secrecy potential across the grid.<br>
+        <b style="color:var(--yellow)">Orange dot</b> = what the AI perceives as Eve's position.<br>
+        <b style="color:var(--red)">Red dot</b> = Eve's true location (used for physics).
+      </div>
+    </div>
+
+  </div><!-- /panel -->
+</div><!-- /layout -->
+
+<!-- Scripts (order matters) -->
+<script src="physics.js"></script>
+<script src="state.js"></script>
+<script src="renderer.js"></script>
+<script src="ui.js"></script>
+<script>
+  // Bootstrap
+  const canvas = document.getElementById('simCanvas');
+  RENDERER.init(canvas);
+  UI.init(canvas);
+</script>
+</body>
+</html>
