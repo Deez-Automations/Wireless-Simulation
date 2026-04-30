@@ -5,6 +5,52 @@
 
 const UI = (() => {
   const s = STATE.state;
+  const SERVER = 'http://127.0.0.1:5050';
+  let _debounce  = null;
+  let _agentOnline = false;
+
+  // --- Agent status indicator ---
+  function setAgentStatus(online) {
+    _agentOnline = online;
+    const el2 = document.getElementById('agentStatus');
+    if (!el2) return;
+    el2.textContent   = online ? '● AI Online' : '○ AI Offline';
+    el2.style.color   = online ? 'var(--green)' : 'var(--muted)';
+  }
+
+  // Check server health once on load
+  fetch(SERVER + '/health').then(() => setAgentStatus(true)).catch(() => setAgentStatus(false));
+
+  // --- Ask the SAC agent for power allocations ---
+  async function askAgent() {
+    if (s.mode !== 'rl' || !_agentOnline) return;
+    try {
+      const res = await fetch(SERVER + '/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ aps: s.aps, users: s.users, eve: s.perceivedEve }),
+      });
+      const json = await res.json();
+      json.powers.forEach((p, i) => {
+        s.powers[i] = p;
+        const sl = document.getElementById('powerSlider' + i);
+        const vl = document.getElementById('powerVal'   + i);
+        if (sl) sl.value = p;
+        if (vl) vl.textContent = p.toFixed(2) + ' W';
+      });
+      // Re-render with updated powers (no re-debounce)
+      STATE.update(s);
+      RENDERER.render(s);
+      updateMetrics();
+    } catch (_) {
+      setAgentStatus(false);
+    }
+  }
+
+  function scheduleAgentCall() {
+    clearTimeout(_debounce);
+    _debounce = setTimeout(askAgent, 80);
+  }
 
   // --- Metrics display ---
   function updateMetrics() {
@@ -55,9 +101,13 @@ const UI = (() => {
     ['normal', 'smart', 'rl'].forEach(m => {
       el('mode' + m).classList.toggle('active', m === mode);
     });
-    // Power sliders only active in RL mode
-    el('powerSection').style.opacity = (mode === 'rl') ? '1' : '0.4';
-    el('powerSection').style.pointerEvents = (mode === 'rl') ? 'auto' : 'none';
+    const isRL = mode === 'rl';
+    el('powerSection').style.opacity       = isRL ? '1' : '0.4';
+    el('powerSection').style.pointerEvents = 'none'; // agent drives in RL, disabled otherwise
+    [0,1,2,3].forEach(i => {
+      const sl = el('powerSlider' + i);
+      if (sl) sl.disabled = isRL; // agent drives in RL mode
+    });
     s.heatmapDirty = true;
     refresh();
   }
@@ -114,6 +164,7 @@ const UI = (() => {
     STATE.update(s);
     RENDERER.render(s);
     updateMetrics();
+    if (s.mode === 'rl') scheduleAgentCall();
   }
 
   // --- Canvas drag ---
