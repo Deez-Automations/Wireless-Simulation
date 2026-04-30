@@ -3,7 +3,7 @@
 
 > **Course:** CY315 — Wireless and Mobile Security · GIKI · Spring 2026  
 > **Track:** Track 2 — Implementation & Optimization  
-> **Baseline Paper:** Hoseini et al., arXiv:2403.10342, 2024
+> **Baseline Paper:** Hoseini et al., IEEE Globecom Workshops 2023, DOI: 10.1109/GCWKSHPS58843.2023.10465104
 
 ---
 
@@ -247,7 +247,7 @@ maximize  Σₖ Cs(uₖ)   subject to  pₙ ∈ [0, P_max]  ∀n
 
 ## References
 
-1. S.A. Hoseini, F. Bouhafs, N. Aboutorab, P. Sadeghi, F. den Hartog — *"Cooperative Jamming for Physical Layer Security Enhancement Using Deep Reinforcement Learning"* — arXiv:2403.10342, 2024
+1. S.A. Hoseini, F. Bouhafs, N. Aboutorab, P. Sadeghi, F. den Hartog — *"Cooperative Jamming for Physical Layer Security Enhancement Using Deep Reinforcement Learning"* — 2023 IEEE Globecom Workshops (GC Wkshps), DOI: 10.1109/GCWKSHPS58843.2023.10465104
 2. H. Yang, Z. Xiong, J. Zhao, D. Niyato, L. Xiao, Q. Wu — *"Deep Reinforcement Learning-Based IRS for Secure Wireless Communications"* — IEEE TWC, Vol. 20, No. 1, 2021
 3. M. Cui, G. Zhang, R. Zhang — *"Secure Wireless Communication via Intelligent Reflecting Surface"* — IEEE WCL, 2019
 4. Y. Zhang et al. — *"DRL for Secrecy Energy Efficiency in RIS-Assisted Networks"* — IEEE TVT, 2023
