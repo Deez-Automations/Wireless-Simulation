@@ -149,20 +149,102 @@ The performance advantage of our contribution is visible in Plot 2, where uncert
 
 ## Interactive Dashboard
 
-The `dashboard/` folder is a standalone browser simulation running full Friis physics in real time. No server, no install — just open the file.
+The dashboard has two layers — a standalone browser simulation (no server needed), and a live AI mode that connects to the trained SAC agent via a local Flask server.
+
+---
+
+### Mode 1 — Static (no server)
 
 ```
-dashboard/index.html  ←  open this in any browser
+Open dashboard/index.html directly in any browser.
 ```
 
-**Controls:**
-- **Drag** any node (AP, User, Eve) — metrics update live
-- **Noise slider** — blur Eve's perceived location, watch the AI compensate
-- **Mode switcher** — compare Normal Wi-Fi vs Smart AP vs RL-Based CFJ
-- **Power sliders** — manually tune each AP's transmit power in RL mode
-- **Heatmap toggle** — visualize secrecy potential across the coverage area
+All physics runs in JavaScript in real time. Drag nodes, adjust sliders — metrics update instantly.
 
-The orange dot shows what the AI perceives as Eve's location. The red dot is Eve's true position used for physics scoring. As you increase the noise slider, the gap between them widens — this is exactly what our training modification addresses.
+---
+
+### Mode 2 — Live AI (with Flask server)
+
+When the server is running, switching to **RL-Based CFJ** mode connects the dashboard to the actual trained neural network. Every node drag triggers a request to the Python agent, which returns real power allocations computed by the SAC policy.
+
+```bash
+# Terminal — start the agent server
+pip install flask flask-cors
+python server.py
+# → Model loaded: models/sac_noise_10.0
+# → Running on http://127.0.0.1:5050
+
+# Then open dashboard/index.html in browser
+# Power section shows: ● AI Online
+```
+
+The power sliders lock in RL mode — the agent drives them. Switch to Normal Wi-Fi or Smart AP to unlock manual control.
+
+---
+
+### How the Dashboard Computes Physics
+
+Every frame, `physics.js` runs the full Friis + Shannon pipeline in JavaScript, matching the Python environment exactly.
+
+**Step 1 — Received power (Friis):**
+```
+p_r(AP_n → Node) = p_n · (λ / 4π)² · (1 / d)^γ
+
+λ = c / f = 3×10⁸ / 2.4×10⁹ = 0.125 m
+γ = 2  (free-space path loss exponent)
+```
+
+**Step 2 — SINR at legitimate user (Shannon SINR):**
+```
+SINR(n, k) = p_r(AP_n → User_k) / ( Σ_{ν≠n} p_r(AP_ν → User_k) + N₀ )
+
+N₀ = noise power = 10^((-85 - 30) / 10) = 3.16 × 10⁻¹² W
+```
+All other APs act as interference — this is what limits user capacity and is also what jams Eve.
+
+**Step 3 — Channel capacity:**
+```
+C(n, k) = log₂(1 + SINR(n, k))     [W = 1 Hz, normalized]
+```
+
+**Step 4 — Secrecy capacity per user:**
+```
+Cs(u_k) = [ C(AP_{α_k} → User_k) − max_j C(AP_{α_k} → Eve_j) ]+
+
+The [·]+ means take max with 0 — secrecy is never negative.
+α_k = the AP associated with user k (best secrecy AP at uniform power).
+```
+
+**Step 5 — Sum secrecy (the dashboard's main metric):**
+```
+Sum Secrecy = Σ_k Cs(u_k)
+```
+
+**Step 6 — Secrecy ratio:**
+```
+Secrecy Ratio = (number of users with Cs > 0) / total users
+```
+
+**What the heatmap shows:** For each pixel on the canvas, `physics.js` computes what the secrecy capacity would be if a user were placed at that point. Bright = high secrecy potential, dark = Eve-dominated zone.
+
+**How the noise slider works:** When σ > 0, the dashboard samples `perceived_eve = true_eve + N(0, σ²)` — the orange dot drifts away from the red dot. In RL mode, the agent receives the orange dot's coordinates (what it was trained on), but all physics scoring uses the red dot's true position. This directly replicates the imperfect CSI experiment from our Python training.
+
+**How the Flask bridge works:**
+```
+JS drag event
+    → debounce 80ms
+    → POST /predict { aps: [...], users: [...], eve: perceived_position }
+    → Python: build 14-element obs vector, model.predict(obs)
+    → return { powers: [p1, p2, p3, p4] }
+    → JS: animate power sliders, re-render canvas
+```
+
+The observation vector order matches `cfj_env._build_obs()` exactly:
+```
+obs = [AP1x, AP1y, AP2x, AP2y, AP3x, AP3y, AP4x, AP4y,
+       U1x,  U1y,  U2x,  U2y,
+       Eve_perceived_x, Eve_perceived_y]    ← 14 floats, metres
+```
 
 ---
 
