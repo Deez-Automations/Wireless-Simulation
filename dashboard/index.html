@@ -10,8 +10,11 @@
 
 <header>
   <div class="hdr-left">
-    <h1>Cooperative Friendly Jamming — Interactive Simulation</h1>
-    <p>Imperfect Eavesdropper CSI · Hoseini et al. 2024 + GIKI CY315 · Accurate Friis Physics</p>
+    <div class="hdr-icon">📡</div>
+    <div class="hdr-text">
+      <h1>Cooperative Friendly Jamming — Interactive Simulation</h1>
+      <p>Imperfect Eavesdropper CSI · Hoseini et al. 2024 + GIKI CY315 · Friis Path Loss Model</p>
+    </div>
   </div>
   <div class="badge">LIVE PHYSICS</div>
 </header>
@@ -22,7 +25,7 @@
   <div class="canvas-area">
     <canvas id="simCanvas" width="560" height="560"></canvas>
     <div class="toolbar">
-      <button class="btn active" id="btnHeatmap" onclick="toggleHeatmap()">Heatmap ON</button>
+      <button class="btn active" id="btnHeatmap" onclick="toggleHeatmap()">⬛ Heatmap ON</button>
       <button class="btn" onclick="randomize()">🎲 Randomize</button>
       <button class="btn" onclick="resetState()">↺ Reset</button>
     </div>
@@ -43,7 +46,10 @@
 
     <!-- CSI Noise — Our Contribution -->
     <div class="section">
-      <div class="sec-title">⚠ Imperfect Eve CSI — Our Contribution</div>
+      <div class="sec-title">
+        Imperfect Eve CSI
+        <span class="contrib-tag">OUR CONTRIBUTION</span>
+      </div>
       <div class="slider-row">
         <div class="slider-label">
           <span class="slider-name">Location Uncertainty σ</span>
@@ -64,37 +70,37 @@
       <div class="slider-row">
         <div class="slider-label">
           <span class="slider-name">AP 1</span>
-          <span class="slider-val" id="powerVal0">0.80 W</span>
+          <span class="slider-val" id="powerVal0">1.00 W</span>
         </div>
         <input type="range" class="power-sl" id="powerSlider0"
-               min="0" max="1" step="0.01" value="0.8"
+               min="0" max="1" step="0.01" value="1.0"
                oninput="updatePower(0, this.value)">
       </div>
       <div class="slider-row">
         <div class="slider-label">
           <span class="slider-name">AP 2</span>
-          <span class="slider-val" id="powerVal1">0.80 W</span>
+          <span class="slider-val" id="powerVal1">1.00 W</span>
         </div>
         <input type="range" class="power-sl" id="powerSlider1"
-               min="0" max="1" step="0.01" value="0.8"
+               min="0" max="1" step="0.01" value="1.0"
                oninput="updatePower(1, this.value)">
       </div>
       <div class="slider-row">
         <div class="slider-label">
           <span class="slider-name">AP 3</span>
-          <span class="slider-val" id="powerVal2">0.80 W</span>
+          <span class="slider-val" id="powerVal2">1.00 W</span>
         </div>
         <input type="range" class="power-sl" id="powerSlider2"
-               min="0" max="1" step="0.01" value="0.8"
+               min="0" max="1" step="0.01" value="1.0"
                oninput="updatePower(2, this.value)">
       </div>
       <div class="slider-row">
         <div class="slider-label">
           <span class="slider-name">AP 4</span>
-          <span class="slider-val" id="powerVal3">0.80 W</span>
+          <span class="slider-val" id="powerVal3">1.00 W</span>
         </div>
         <input type="range" class="power-sl" id="powerSlider3"
-               min="0" max="1" step="0.01" value="0.8"
+               min="0" max="1" step="0.01" value="1.0"
                oninput="updatePower(3, this.value)">
       </div>
     </div>
@@ -143,29 +149,27 @@
       </div>
     </div>
 
-    <!-- Instructions -->
+    <!-- How to use -->
     <div class="section">
       <div class="sec-title">How to Use</div>
-      <div style="font-size:10px; color:var(--muted); line-height:1.7;">
-        <b style="color:var(--text)">Drag</b> any node to reposition it.<br>
-        <b style="color:var(--text)">Noise slider</b> blurs Eve's location (orange dot).<br>
-        <b style="color:var(--text)">Power sliders</b> tune each AP (RL mode).<br>
-        <b style="color:var(--text)">Heatmap</b> shows secrecy potential across the grid.<br>
-        <b style="color:var(--yellow)">Orange dot</b> = what the AI perceives as Eve's position.<br>
-        <b style="color:var(--red)">Red dot</b> = Eve's true location (used for physics).
+      <div class="how-to">
+        <b>Drag</b> any node to reposition it.<br>
+        <b>Noise slider</b> blurs Eve's perceived location.<br>
+        <b>Power sliders</b> tune each AP in RL mode.<br>
+        <b>Heatmap</b> shows secrecy potential across the grid.<br>
+        <span class="dot-eve-noisy">■</span> <b>Orange dot</b> — AI's perceived Eve position.<br>
+        <span class="dot-eve-true">■</span> <b>Red dot</b> — Eve's true location (physics ground truth).
       </div>
     </div>
 
   </div><!-- /panel -->
 </div><!-- /layout -->
 
-<!-- Scripts (order matters) -->
 <script src="physics.js"></script>
 <script src="state.js"></script>
 <script src="renderer.js"></script>
 <script src="ui.js"></script>
 <script>
-  // Bootstrap
   const canvas = document.getElementById('simCanvas');
   RENDERER.init(canvas);
   UI.init(canvas);
