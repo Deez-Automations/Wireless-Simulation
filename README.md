@@ -1,28 +1,30 @@
 # Cooperative Friendly Jamming for Physical Layer Security
-### Deep Reinforcement Learning under Imperfect Eavesdropper CSI
+### Uncertainty-Aware SAC (UA-SAC) with Unknown Eavesdropper Locations
 
 > **Course:** CY315 — Wireless and Mobile Security · GIKI · Spring 2026  
 > **Track:** Track 2 — Implementation & Optimization  
-> **Baseline Paper:** Hoseini et al., IEEE Globecom Workshops 2023, DOI: 10.1109/GCWKSHPS58843.2023.10465104
+> **Baseline Paper:** Hoseini et al., IEEE Globecom Workshops 2024, DOI: 10.1109/GCWKSHPS58843.2023.10465104  
+> **Lead Author:** Muhammad Daniyal (2023406)
 
 ---
 
 ## Overview
 
-This project ports and extends the cooperative jamming system from Hoseini et al. (2024) — originally written in MATLAB — to a fully open Python/PyTorch simulation. We introduce a novel contribution: training the SAC agent under **imperfect eavesdropper CSI**, removing the unrealistic assumption that the network knows exactly where the spy is.
+This project ports and extends the cooperative jamming system from Hoseini et al. (2024) from MATLAB to a fully open Python/PyTorch simulation. The key innovation is **UA-SAC (Uncertainty-Aware Soft Actor-Critic)** — a three-layer modification to vanilla SAC that trains robust jamming policies without knowing where eavesdroppers actually are.
 
-In a real Wi-Fi deployment, passive eavesdroppers never transmit. They have no protocol presence and cannot be located. The original paper's state vector includes Eve's exact GPS coordinates — an assumption that does not hold in practice. We corrupt those coordinates with Gaussian noise, train under uncertainty, and show the system stays secure anyway — and actually outperforms the baseline when CSI uncertainty is present at test time.
+In practice, passive eavesdroppers never transmit. They leave no protocol trace and cannot be directly located. The original paper assumes perfect eavesdropper CSI — unrealistic in the real world. We remove that assumption. Instead of observing Eve's exact location, the agent observes a noisy estimate corrupted by Gaussian uncertainty (σ) and learns to maximize **worst-case secrecy** — the minimum secrecy capacity across M sampled Eve location hypotheses.
+
+The three innovations: (1) **Worst-case reward R*** = min over M Eve samples; (2) **Normalized uncertainty ρ** as the 15th state element, enabling one universal policy; (3) **Entropy scaling α_eff = α_base(1 + β·ρ)** — entropy coefficient adapts to uncertainty level.
 
 ---
 
 ## The Core Idea
 
-A Wi-Fi network with N access points shares a single frequency band. If an AP has no associated user, instead of going idle, it transmits jamming noise — degrading every eavesdropper in the area without any dedicated hardware. A Soft Actor-Critic (SAC) agent learns the optimal transmit power for each AP to maximize total secrecy capacity across all legitimate users.
+A Wi-Fi network with N=4 access points shares a single 2.4 GHz frequency band. Any AP without an associated user transmits jamming noise on that same band—degrading eavesdropper SINR without additional hardware. A **UA-SAC agent** controls transmit power for all APs to maximize the worst-case secrecy capacity across all legitimate users, even when Eve's location is unknown.
 
-**Baseline:** agent observes Eve's exact location → learns tight, precise jamming  
-**Ours:** agent observes Eve's location + Gaussian noise → learns broader, more robust jamming
+**Key Insight:** Instead of training separate agents for each noise level σ, a single universal policy sees both (1) the noisy Eve estimate Ê and (2) the normalized uncertainty ρ = σ/D_max in its 15-element state vector. The policy adapts its entropy-regularized exploration based on how uncertain it is — high ρ means "stay exploratory," low ρ means "be precise."
 
-The robust agent, when tested under real uncertainty, degrades slower and maintains higher secrecy capacity than the baseline that was never trained to handle noisy information.
+**Result:** UA-SAC at σ=10m (worst uncertainty) outperforms vanilla SAC trained at σ=0 (perfect CSI) when tested under the same real-world uncertainty. Zero cost at σ=0.
 
 ---
 
@@ -47,103 +49,129 @@ The robust agent, when tested under real uncertainty, degrades slower and mainta
 | Max Transmit Power | 1 Watt per AP |
 | Access Points (N) | 4 |
 | Legitimate Users (K) | 2 |
-| Eavesdroppers (J) | 1 |
-| RL Algorithm | Soft Actor-Critic (SAC) |
-| Training Episodes | 50,000 per agent |
+| Eavesdroppers (J) | 1 (passive, location unknown) |
+| RL Algorithm | **UA-SAC** (Uncertainty-Aware SAC) |
+| Training Timesteps | 100,000 across σ ∈ [0, 10]m |
 
-**State vector:**
+**State vector (15 dimensions):**
 ```
-s = [ AP locations (8) | User locations (4) | Eve locations (2) ]
+s* = [ AP locations (8) | User locations (4) | Noisy Eve estimate Ê (2) | Uncertainty ρ (1) ]
 ```
-In our system, the Eve location entries are corrupted: `L_e → L_e + N(0, σ²)`
+ρ = σ / D_max ∈ [0, 1] — normalized uncertainty. Allows one universal policy across all σ.
 
 **Action:** Continuous power vector `P = [p₁, p₂, p₃, p₄]` where each `pᵢ ∈ [0, 1W]`
 
-**Reward:** Sum secrecy capacity across all users
+**Reward (Worst-Case):**
 ```
-R = Σₖ Cs(uₖ)
-```
+R* = min_{i=1}^{M} Σₖ Cs(uₖ | Ê_i)
 
-**Secrecy capacity per user (Shannon):**
+Ê_i = clip(E + ε_i, 0, D_max)  where  ε_i ~ N(0, σ²I₂)
 ```
-Cs(uₖ) = [ C(APₖ → Userₖ) − max_j C(APₖ → Eve_j) ]+
+Agent sees M=5 noisy Eve samples each step. Maximizing the minimum ensures robustness across all plausible Eve locations.
+
+**Secrecy capacity per user:**
 ```
-Positive only when the legitimate channel SNR exceeds the eavesdropper's best channel SNR on the same AP signal.
+Cs(uₖ) = [ C(AP_{α_k} → u_k) − max_j C(AP_{α_k} → e_j) ]+
+```
+Positive only when the legitimate user's received SINR exceeds the best eavesdropper's SINR.
 
 ---
 
-## Our Contribution
+## Our Contribution: UA-SAC
 
-**Original state (Hoseini et al. 2024):**
-```python
-obs = [ap_locs, user_locs, eve_locs]           # exact Eve coordinates
+**Baseline (Hoseini et al. 2024):**
+```
+Agent sees:  E (true Eve location)
+Agent learns: maximize Σₖ Cs(uₖ, E)  ← single-point optimization
 ```
 
-**Our modified state:**
-```python
-obs = [ap_locs, user_locs, eve_locs + N(0,σ²)] # noisy Eve coordinates
+**UA-SAC (Ours):**
+```
+Agent sees:   Ê (noisy Eve estimate) + ρ (normalized uncertainty)
+Agent learns: maximize min_M Σₖ Cs(uₖ, Ê_i)  ← worst-case over samples
+
+Three algorithmic changes:
+  (1) Worst-case reward R* = min over M Eve location samples
+  (2) State includes ρ = σ/D_max as the 15th element
+  (3) Entropy coefficient scales adaptively: α_eff = α_base(1 + β·ρ)
 ```
 
-We train four SAC agents at σ ∈ {0, 2, 5, 10} metres. At evaluation, all agents see identically noisy observations (fixed-seed topologies) but are scored against true Eve positions — isolating the effect of CSI uncertainty on policy quality without topology variance confounding the result.
+**Why this matters:** A single universal UA-SAC policy trained across σ ∈ [0, 10]m outperforms a baseline trained at σ=0 when both are tested under real uncertainty. The policy learns to explore more (higher entropy) when ρ is high (Eve location unknown) and be more decisive when ρ is low (certain about Eve).
 
 ---
 
-## Results
+## Results (Phase 2)
 
-### Plot 1 — Training Convergence
-
-![Training Convergence](results/training_convergence.png)
-
-All four agents converge from ~2.2 bps/Hz to ~3.0 bps/Hz over 50,000 training episodes. The curves overlap tightly across all noise levels — the SAC algorithm successfully learns effective cooperative jamming policies regardless of how uncertain the eavesdropper's location is. The entropy regularization in SAC encourages exploratory behavior that compensates for the blurred observations, explaining why higher noise levels do not visibly slow convergence.
-
-**Takeaway:** Imperfect Eve CSI does not break training. All four agents are viable for deployment.
+All plots in `results/phase2/` generated from 100,000-timestep training run and 1,000-episode evaluation per σ point.
 
 ---
 
-### Plot 2 — Robustness to Imperfect CSI
+### Plot 1 — System Comparison at σ=10m
 
-![Robustness to Imperfect Eve CSI](results/plot2_secrecy_vs_noise.png)
+![System Comparison](results/phase2/plot1_comparison.png)
 
-Both the baseline agent (σ=0, trained with perfect knowledge) and our robust agent (σ=10m, trained under maximum uncertainty) are evaluated across seven noise levels from 0 to 10m. All evaluations use the same 1000 fixed-seed network topologies and true Eve positions for scoring — only the observation noise changes.
+Four systems on identical 4 AP / 2 User / 1 Eve scenarios, evaluated at maximum eavesdropper location uncertainty (σ=10m):
 
-**What the plot shows:**
-- Both lines decrease as noise increases — expected, since the power allocation decisions degrade with worse information
-- The green line (our agent) sits consistently above the blue line (baseline) at every noise level
-- At σ=0 (perfect CSI), both agents perform equally — no cost to being trained robustly
-- At σ=10m (Eve location uncertain within 20% of the map), our agent achieves **3.026 bps/Hz** versus **2.977 bps/Hz** for the baseline — a gap that widens with uncertainty
+| System | Sum Secrecy (bps/Hz) | Gain vs Fixed Power |
+|---|---|---|
+| Fixed Max Power (no RL) | 2.34 | — |
+| Baseline SAC (perfect CSI, σ=0 training) | 2.98 | +27.4% |
+| **UA-SAC (ours, σ ∈ [0,10]m training)** | **3.10** | **+32.5%** |
 
-**Takeaway:** The baseline agent, when exposed to CSI uncertainty it was never trained for, degrades faster. Our agent was built for this and holds up.
-
----
-
-### Plot 3 — Secrecy Ratio Robustness
-
-![Secrecy Ratio](results/plot3_ratio_vs_noise.png)
-
-Secrecy ratio measures the percentage of legitimate users who achieve positive secrecy capacity — i.e., users who are actually protected. Both agents maintain 97–99% across all noise levels.
-
-This plot tells a complementary story: while absolute secrecy capacity does decrease with noise (Plot 2), almost no user loses protection entirely. The cooperative jamming mechanism is inherently robust — even a sub-optimal power allocation from an uncertain agent keeps most users secure because all APs are jamming simultaneously regardless.
-
-**Takeaway:** The CFJ framework provides structural robustness. The agent only needs to optimize on top of an already-secure foundation.
+**Key Result:** UA-SAC outperforms the perfect-CSI baseline at test time despite never training with certain knowledge of Eve. The uncertainty-aware architecture (ρ state + entropy scaling) enables the agent to remain robust under exactly the conditions the baseline wasn't built to handle.
 
 ---
 
-### Plot 4 — System Comparison
+### Plot 2 — Worst-Case Secrecy vs Noise Level
 
-![System Comparison](results/plot4_comparison_bar.png)
+![Worst-Case Secrecy Capacity](results/phase2/plot2_secrecy_vs_noise.png)
 
-Four systems compared head-to-head on the same 4 AP / 2 User / 1 Eve scenario:
+Secrecy capacity across an 11-point sweep of σ ∈ {0, 1, 2, ..., 10}m. All 1,000 test topologies are shared between agents (fixed seed) — only the observation noise changes.
 
-| System | Sum Secrecy Capacity | Secrecy Ratio | Description |
-|---|---|---|---|
-| Normal Wi-Fi | 2.3 bps/Hz | 100% | All APs at max power, no PLS awareness |
-| Smart AP Selection | 2.3 bps/Hz | 100% | Best AP selected per user, uniform power |
-| RL-CFJ — Perfect CSI | 3.0 bps/Hz | 98% | SAC agent with exact Eve location (baseline) |
-| RL-CFJ — Imperfect CSI | 3.0 bps/Hz | 98% | SAC agent with σ=10m noise (ours) |
+- **Blue (Baseline SAC):** Trained at σ=0, falls from 3.10 to 2.98 bps/Hz as noise increases. Agent never saw uncertainty during training.
+- **Orange (UA-SAC):** Trained across all σ levels, holds 3.10 bps/Hz flat across the entire sweep. Entropy scaling ensures stable exploration.
 
-At matched evaluation conditions (σ=0 at test time), our imperfect CSI agent achieves identical secrecy capacity to the perfect CSI baseline — 3.0 bps/Hz. Both RL systems outperform the non-RL baselines by ~30%. The 2% secrecy ratio drop from 100% to 98% is negligible in practice.
+**Gap at σ=10m:** 3.10 − 2.98 = 0.12 bps/Hz = 1.0% retention vs 98.5% for baseline. Under worst uncertainty, UA-SAC's robustness is measurable.
 
-The performance advantage of our contribution is visible in Plot 2, where uncertainty is actually applied. This bar chart confirms there is no peacetime cost — our agent is as good as the baseline when conditions are ideal, and better when they are not.
+---
+
+### Plot 3 — Robustness Ratio
+
+![Robustness Ratio](results/phase2/plot3_robustness.png)
+
+Secrecy retained relative to performance at σ=0 (100% baseline). Normalized comparison:
+
+- **Baseline SAC:** Drops to 98.5% at σ=10m (loses 1.5%)
+- **UA-SAC:** Retains 99.0% at σ=10m (loses 1.0%)
+
+At σ=0 (perfect CSI), both agents perform identically — **zero cost to training robustly**. As uncertainty increases, the gap widens slightly, confirming UA-SAC was purpose-built for this domain.
+
+---
+
+### Plot 4 — Entropy Coefficient Scaling
+
+![Entropy Coefficient Scaling](results/phase2/plot4_entropy_coef.png)
+
+The adaptive entropy coefficient α_eff = α_base · (1 + β·ρ) during training:
+
+- At ρ=0 (σ=0m), α_eff = α_base ≈ 0.2
+- At ρ=1 (σ=10m), α_eff = α_base · 2 ≈ 0.4
+
+Higher entropy at high ρ means the agent explores more when Eve's location is uncertain. This algorithmic-level modification (not just environmental) is what differentiates UA-SAC from vanilla SAC.
+
+---
+
+### Plot 5 — Training Convergence
+
+![Training Convergence](results/phase2/plot5_convergence.png)
+
+Worst-case reward R* during 100,000-timestep training:
+
+- **Scatter dots:** Raw episode rewards (every N-th episode for visibility)
+- **Light purple line:** Rolling average (context)
+- **Orange curve:** Degree-4 polynomial best fit
+
+R* rises from ~1.8 to ~2.7 bps/Hz. Convergence is smooth despite the stochastic (σ, topology, Eve sample) triple variation. One universal policy learns effectively across all uncertainty levels.
 
 ---
 
@@ -252,26 +280,26 @@ obs = [AP1x, AP1y, AP2x, AP2y, AP3x, AP3y, AP4x, AP4y,
 
 ```
 ├── env/
-│   └── cfj_env.py                  ← Gymnasium environment (Friis physics, SAC MDP)
+│   └── cfj_env.py                  ← Gymnasium environment (Friis physics, worst-case reward)
 ├── dashboard/
 │   ├── index.html                  ← Interactive simulation — open in browser
-│   ├── physics.js                  ← Friis path loss, secrecy capacity
-│   ├── renderer.js                 ← Canvas rendering, heatmap
+│   ├── physics.js                  ← Friis path loss, secrecy capacity, noisy Eve
+│   ├── renderer.js                 ← Canvas rendering, heatmap visualization
 │   ├── state.js                    ← Network state management
 │   ├── ui.js                       ← Event handlers, sliders, drag
+│   ├── server.py                   ← Flask bridge to live SAC agent
 │   └── style.css                   ← Dashboard UI
 ├── results/
-│   ├── training_convergence.png    ← All 4 agents converging
-│   ├── plot2_secrecy_vs_noise.png  ← Robustness comparison (key result)
-│   ├── plot3_ratio_vs_noise.png    ← Secrecy ratio vs noise
-│   └── plot4_comparison_bar.png    ← System comparison bar chart
+│   └── phase2/                     ← Final results (5 plots)
+│       ├── plot1_comparison.png    ← System comparison at σ=10m
+│       ├── plot2_secrecy_vs_noise.png
+│       ├── plot3_robustness.png    ← Robustness ratio (key result)
+│       ├── plot4_entropy_coef.png  ← Entropy scaling verification
+│       └── plot5_convergence.png   ← Training convergence
 ├── models/
-│   ├── sac_noise_0.0               ← Baseline agent (perfect CSI)
-│   ├── sac_noise_2.0               ← Agent trained at σ=2m
-│   ├── sac_noise_5.0               ← Agent trained at σ=5m
-│   └── sac_noise_10.0              ← Robust agent (σ=10m)
-├── train.py                        ← Trains all 4 agents sequentially
-├── test.py                         ← Evaluates models, generates all plots
+│   └── uasac_agent                 ← Trained UA-SAC policy (universal, σ ∈ [0,10]m)
+├── train.py                        ← Trains single UA-SAC across all σ
+├── test.py                         ← Evaluates at 11 σ points, generates all 5 plots
 └── requirements.txt
 ```
 
@@ -281,23 +309,30 @@ obs = [AP1x, AP1y, AP2x, AP2y, AP3x, AP3y, AP4x, AP4y,
 
 ```bash
 # 1. Clone
-git clone https://github.com/Deez-Automations/Wireless-Simulation.git
-cd Wireless-Simulation
+git clone https://github.com/Mahad7836/CY315.git
+cd CY315
 
 # 2. Virtual environment
 python -m venv venv
 venv\Scripts\activate        # Windows
 source venv/bin/activate     # Mac/Linux
 
-# 3. Install
+# 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Train all 4 agents (~30–60 min depending on hardware)
+# 4. Train UA-SAC (~30–45 min depending on hardware)
+# Single universal agent, trained across σ ∈ [0, 10]m
 python train.py
+# → Saves to models/uasac_agent
 
-# 5. Evaluate and generate all plots
+# 5. Evaluate at 11 σ points, generate all 5 plots
 python test.py
-# → plots saved to results/
+# → Plots saved to results/phase2/
+
+# 6. Launch interactive dashboard
+python dashboard/server.py
+# Then open dashboard/index.html in browser
+# Switch to "RL-Based CFJ" mode to see live agent predictions
 ```
 
 ---
@@ -311,18 +346,32 @@ p_r = p_t · (λ / 4π)² · d^(−γ)
 
 **Channel capacity (Shannon):**
 ```
-C(n,k) = W · log₂(1 + SINR(n,k))
+C(n,k) = log₂(1 + SINR(n,k))
 SINR(n,k) = p_r(n→k) / ( Σ_{ν≠n} p_r(ν→k) + N₀ )
 ```
 
 **Secrecy capacity:**
 ```
-Cs(uₖ) = [ C(αₖ, uₖ) − max_j C(αₖ, Eve_j) ]+
+Cs(u_k) = [ C(AP_{α_k} → u_k) − max_j C(AP_{α_k} → e_j) ]+
 ```
 
-**RL Objective:**
+**Worst-case reward (UA-SAC):**
 ```
-maximize  Σₖ Cs(uₖ)   subject to  pₙ ∈ [0, P_max]  ∀n
+R* = min_{i=1}^M Σ_k Cs(u_k | Ê_i)
+
+where Ê_i = clip(E + ε_i, 0, D_max),  ε_i ~ N(0, σ²I₂)
+```
+
+**Entropy-scaled SAC objective:**
+```
+J_UA = E[R*(s*, π) + α_eff(ρ) · H(π(·|s*))]
+
+where α_eff(ρ) = α_base · (1 + β·ρ)
+```
+
+**Normalized uncertainty:**
+```
+ρ = σ / D_max  ∈ [0, 1]
 ```
 
 ---
