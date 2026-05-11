@@ -143,9 +143,12 @@ const RENDERER = (() => {
     const { trueEve, perceivedEve, csiNoiseSigma } = state;
     if (csiNoiseSigma === 0) return;
 
+    ctx.save();  // isolate all state changes in this function
+
     const t = toCanvas(trueEve);
     const p = toCanvas(perceivedEve);
 
+    // Dashed line true→perceived
     ctx.strokeStyle = COLORS.csiLine;
     ctx.lineWidth = 1.5;
     ctx.setLineDash([4, 3]);
@@ -164,16 +167,30 @@ const RENDERER = (() => {
     ctx.textAlign = 'center';
     ctx.fillText(`${errDist}m`, midX, midY - 6);
 
-    // Uncertainty Ring (visualizing the math: sigma * scale)
+    // Uncertainty Ring stroke (visualizing sigma * scale radius)
     ctx.beginPath();
     ctx.arc(t.x, t.y, csiNoiseSigma * scale, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(244,63,94,0.15)'; // faint Rose
+    ctx.strokeStyle = 'rgba(139,92,246,0.25)'; // violet — UA-SAC brand colour
     ctx.lineWidth = 1;
     ctx.setLineDash([4, 4]);
     ctx.stroke();
     ctx.setLineDash([]);
-    ctx.fillStyle = 'rgba(244,63,94,0.03)';
+
+    // Uncertainty Ring fill (separate path to avoid state bleed)
+    ctx.beginPath();
+    ctx.arc(t.x, t.y, csiNoiseSigma * scale, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(139,92,246,0.04)';
     ctx.fill();
+
+    // ρ label at top of ring
+    const rho = (csiNoiseSigma / PHYSICS.MAP_SIZE).toFixed(3);
+    const ringTopY = t.y - csiNoiseSigma * scale - 10;
+    ctx.fillStyle = '#a78bfa';
+    ctx.font = '600 9px JetBrains Mono, monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(`\u03c1 = ${rho}`, t.x, ringTopY);
+
+    ctx.restore();  // restore all canvas state
   }
 
   // --- Draw a glowing circle ---
@@ -304,10 +321,11 @@ const RENDERER = (() => {
       { color: '#71717a', label: 'User (insecure)' },
       { color: '#f43f5e', label: 'Eve — true location' },
       { color: '#fb7185', label: 'Eve — perceived (noisy)' },
+      { color: '#a78bfa', label: 'Uncertainty ring (σ)  ·  ρ label' },
     ];
     let lx = PAD + 8, ly = H - PAD - 8 - items.length * 16;
     ctx.fillStyle = 'rgba(6,6,15,0.75)';
-    ctx.fillRect(lx - 4, ly - 4, 185, items.length * 16 + 8);
+    ctx.fillRect(lx - 4, ly - 4, 210, items.length * 16 + 8);
     items.forEach((item, i) => {
       const y = ly + i * 16 + 8;
       ctx.fillStyle = item.color;

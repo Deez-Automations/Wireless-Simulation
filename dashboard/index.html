@@ -13,7 +13,7 @@
     <div class="hdr-icon">📡</div>
     <div class="hdr-text">
       <h1>Cooperative Friendly Jamming — Interactive Simulation</h1>
-      <p>Imperfect Eavesdropper CSI · Hoseini et al. 2024 + GIKI CY315 · Friis Path Loss Model</p>
+      <p>UA-SAC · Imperfect Eve CSI · ρ-Scaled Entropy · Hoseini et al. 2024 + GIKI CY315 · Friis Path Loss Model</p>
     </div>
   </div>
   <div class="badge">LIVE PHYSICS</div>
@@ -61,6 +61,58 @@
       </div>
       <div class="csi-box" id="csiError">
         Perfect CSI — exact Eve location known
+      </div>
+    </div>
+
+    <!-- ══ ρ (Rho) Confidence Panel — OUR VARIABLE ══ -->
+    <div class="section">
+      <div class="sec-title">
+        Eve Location Confidence
+        <span class="contrib-tag" style="background:rgba(139,92,246,0.12);border-color:rgba(139,92,246,0.3);color:#a78bfa;">UA-SAC ρ</span>
+      </div>
+
+      <!-- ρ value display -->
+      <div class="rho-header">
+        <div class="rho-formula">ρ = σ / D<sub>max</sub></div>
+        <div class="rho-value-badge" id="rhoValBadge">ρ = 0.000</div>
+      </div>
+
+      <!-- Segmented confidence gauge -->
+      <div class="conf-gauge-wrap">
+        <div class="conf-gauge" id="confGauge">
+          <div class="conf-fill" id="confFill" style="width:0%"></div>
+          <div class="conf-tick" style="left:25%"></div>
+          <div class="conf-tick" style="left:50%"></div>
+          <div class="conf-tick" style="left:75%"></div>
+        </div>
+        <div class="conf-scale">
+          <span>0</span><span>0.05</span><span>0.1</span><span>0.15</span><span>0.2</span>
+        </div>
+      </div>
+
+      <!-- Confidence label -->
+      <div class="conf-label-row">
+        <div class="conf-dot" id="confDot"></div>
+        <div class="conf-label" id="confLabel">HIGH CONFIDENCE</div>
+        <div class="conf-sublabel" id="confSublabel">Agent jams precisely</div>
+      </div>
+
+      <!-- Entropy scaling readout -->
+      <div class="alpha-row">
+        <div class="alpha-item">
+          <div class="alpha-name">α_base</div>
+          <div class="alpha-val" id="alphaBase">auto</div>
+        </div>
+        <div class="alpha-arrow">×(1 + β·ρ)</div>
+        <div class="alpha-item">
+          <div class="alpha-name">α_eff</div>
+          <div class="alpha-val alpha-eff" id="alphaEff">—</div>
+        </div>
+      </div>
+
+      <!-- Explanation tooltip -->
+      <div class="rho-explain" id="rhoExplain">
+        At ρ = 0: perfect Eve CSI — agent concentrates jamming precisely at Ê.
       </div>
     </div>
 
@@ -124,9 +176,9 @@
           <div class="metric-label">Eve Capacity</div>
           <div class="metric-value red" id="metEveCap">—</div>
         </div>
-        <div class="metric-card">
-          <div class="metric-label">CSI Noise σ</div>
-          <div class="metric-value blue" id="metNoise">0.0m</div>
+        <div class="metric-card" style="border-color:rgba(139,92,246,0.25);">
+          <div class="metric-label" style="color:#a78bfa;">Uncertainty ρ</div>
+          <div class="metric-value" style="color:#8b5cf6;" id="metRho">0.000</div>
         </div>
       </div>
     </div>
@@ -161,7 +213,9 @@
         <b>Power sliders</b> tune each AP in RL mode.<br>
         <b>Heatmap</b> shows secrecy potential across the grid.<br>
         <span class="dot-eve-noisy">■</span> <b>Orange dot</b> — AI's perceived Eve position.<br>
-        <span class="dot-eve-true">■</span> <b>Red dot</b> — Eve's true location (physics ground truth).
+        <span class="dot-eve-true">■</span> <b>Red dot</b> — Eve's true location (physics ground truth).<br>
+        <span style="color:#8b5cf6;">◉</span> <b>Purple ring</b> — σ uncertainty radius around Eve (1σ).<br>
+        <b>ρ gauge</b> — UA-SAC confidence: how much the agent trusts Ê.
       </div>
     </div>
 

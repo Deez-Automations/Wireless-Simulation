@@ -24,11 +24,12 @@ const UI = (() => {
   // --- Ask the SAC agent for power allocations ---
   async function askAgent() {
     if (s.mode !== 'rl' || !_agentOnline) return;
+    const rho = s.csiNoiseSigma / 50;   // UA-SAC needs ρ in observation
     try {
       const res = await fetch(SERVER + '/predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ aps: s.aps, users: s.users, eve: s.perceivedEve }),
+        body: JSON.stringify({ aps: s.aps, users: s.users, eve: s.perceivedEve, rho }),
       });
       const json = await res.json();
       json.powers.forEach((p, i) => {
@@ -52,6 +53,9 @@ const UI = (() => {
     _debounce = setTimeout(askAgent, 80);
   }
 
+  // Shorthand DOM accessor
+  function el(id) { return document.getElementById(id); }
+
   // --- Metrics display ---
   function updateMetrics() {
     const r = s.result;
@@ -65,7 +69,10 @@ const UI = (() => {
     el('metSumSec').textContent  = sumSec;
     el('metRatio').textContent   = ratio + '%';
     el('metEveCap').textContent  = eveCap;
-    el('metNoise').textContent   = s.csiNoiseSigma.toFixed(1) + 'm';
+
+    // ρ metric card
+    const rho = s.csiNoiseSigma / 50;
+    el('metRho').textContent = rho.toFixed(3);
 
     // Color coding
     const sumEl = el('metSumSec');
@@ -90,10 +97,84 @@ const UI = (() => {
     const err = PHYSICS.dist(s.trueEve, s.perceivedEve).toFixed(1);
     el('csiError').textContent = s.csiNoiseSigma === 0
       ? 'Perfect CSI — exact Eve location known'
-      : `σ = ${s.csiNoiseSigma.toFixed(1)}m  |  current error: ${err}m`;
+      : `σ = ${s.csiNoiseSigma.toFixed(1)}m  |  current error: ${err}m  |  ρ = ${rho.toFixed(3)}`;
+
+    // Update ρ confidence panel
+    updateRho(rho);
   }
 
-  function el(id) { return document.getElementById(id); }
+  // --- ρ (Rho) Confidence Panel ---
+  // ρ = σ / D_max (D_max = 50m)  →  [0, 0.2] in practice (σ max = 10m)
+  // The gauge maps [0, 0.2] across its full width so small changes are visible.
+  const RHO_MAX_DISPLAY = 0.20;   // σ=10m → ρ=0.2 fills gauge 100%
+  const BETA = 1.0;               // UA-SAC hyperparameter β
+
+  function updateRho(rho) {
+    // Gauge fill: map [0, RHO_MAX] → [0%, 100%]
+    const fillPct = Math.min(rho / RHO_MAX_DISPLAY * 100, 100);
+    el('confFill').style.width = fillPct + '%';
+
+    // ρ value badge
+    el('rhoValBadge').textContent = 'ρ = ' + rho.toFixed(3);
+
+    // α_eff = α_base × (1 + β·ρ)  — β=1.0, α_base shown as 'auto' (SAC-tuned)
+    const alphaEffMultiplier = (1 + BETA * rho).toFixed(3);
+    el('alphaEff').textContent = '×' + alphaEffMultiplier;
+
+    // Confidence tiers based on ρ
+    let tier;
+    if (rho < 0.04) {
+      tier = {
+        label: 'HIGH CONFIDENCE',
+        sublabel: 'Agent jams precisely',
+        color: '#34d399',   // green
+        glow:  '#34d399',
+        explain: `rho ~= 0: Eve estimate is nearly exact. UA-SAC concentrates jamming tightly on perceived location. alpha_eff ~= alpha_base — minimal entropy boost needed.`
+      };
+    } else if (rho < 0.08) {
+      tier = {
+        label: 'MODERATE CONFIDENCE',
+        sublabel: 'Mild coverage spread',
+        color: '#86efac',   // light green
+        glow:  '#86efac',
+        explain: `ρ = ${rho.toFixed(3)}: Small location error (~${(rho*50).toFixed(1)}m). UA-SAC slightly widens jamming spread. α_eff = α_base × ${alphaEffMultiplier} — subtle entropy lift.`
+      };
+    } else if (rho < 0.12) {
+      tier = {
+        label: 'MEDIUM CONFIDENCE',
+        sublabel: 'Broader jamming pattern',
+        color: '#fbbf24',   // amber
+        glow:  '#fbbf24',
+        explain: `ρ = ${rho.toFixed(3)}: Moderate error (~${(rho*50).toFixed(1)}m est.). UA-SAC spreads jamming across a wider zone. α_eff boosted to ${alphaEffMultiplier}× — agent explores broadly.`
+      };
+    } else if (rho < 0.16) {
+      tier = {
+        label: 'LOW CONFIDENCE',
+        sublabel: 'Diffuse coverage mode',
+        color: '#fb923c',   // orange
+        glow:  '#fb923c',
+        explain: `ρ = ${rho.toFixed(3)}: High error (~${(rho*50).toFixed(1)}m). Agent distrusts Ê — switches to diffuse jamming. α_eff = ${alphaEffMultiplier}× pushes broad exploration.`
+      };
+    } else {
+      tier = {
+        label: 'CRITICAL UNCERTAINTY',
+        sublabel: 'Worst-case robust mode',
+        color: '#f43f5e',   // red
+        glow:  '#f43f5e',
+        explain: `ρ = ${rho.toFixed(3)}: Ê is highly unreliable (~${(rho*50).toFixed(1)}m σ). UA-SAC activates worst-case robust mode: R* = min over M=5 Eve samples. α_eff = ${alphaEffMultiplier}× — maximum entropy, maximum coverage.`
+      };
+    }
+
+    el('confLabel').textContent   = tier.label;
+    el('confLabel').style.color   = tier.color;
+    el('confSublabel').textContent = tier.sublabel;
+    el('confDot').style.background = tier.color;
+    el('confDot').style.boxShadow  = `0 0 8px ${tier.glow}`;
+    el('rhoExplain').textContent   = tier.explain;
+    el('rhoValBadge').style.color  = tier.color;
+    el('rhoValBadge').style.borderColor = tier.color + '55';
+    el('rhoValBadge').style.background  = tier.color + '18';
+  }
 
   // --- Mode buttons ---
   function setMode(mode) {
