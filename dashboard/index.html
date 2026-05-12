@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CFJ Simulation — Imperfect Eve CSI Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <div class="hdr-left">
+    <div class="hdr-icon">📡</div>
+    <div class="hdr-text">
+      <h1>Cooperative Friendly Jamming — Interactive Simulation</h1>
+      <p>UA-SAC · Imperfect Eve CSI · ρ-Scaled Entropy · Hoseini et al. 2024 + GIKI CY315 · Friis Path Loss Model</p>
+    </div>
+  </div>
+  <div class="badge">LIVE PHYSICS</div>
+</header>
+
+<div class="layout">
+
+  <!-- ══ Canvas ══════════════════════════════════ -->
+  <div class="canvas-area">
+    <canvas id="simCanvas" width="560" height="560"></canvas>
+    <div class="toolbar">
+      <button class="btn active" id="btnHeatmap" onclick="toggleHeatmap()">⬛ Heatmap ON</button>
+      <button class="btn" onclick="randomize()">🎲 Randomize</button>
+      <button class="btn" onclick="resetState()">↺ Reset</button>
+    </div>
+  </div>
+
+  <!-- ══ Control Panel ════════════════════════════ -->
+  <div class="panel">
+
+    <!-- Mode -->
+    <div class="section">
+      <div class="sec-title">System Mode</div>
+      <div class="mode-grid">
+        <button class="mode-btn" id="modenormal" onclick="setMode('normal')">Normal<br>Wi-Fi</button>
+        <button class="mode-btn" id="modesmart"  onclick="setMode('smart')">Smart<br>AP</button>
+        <button class="mode-btn active" id="moderl" onclick="setMode('rl')">RL-Based<br>CFJ</button>
+      </div>
+    </div>
+
+    <!-- CSI Noise — Our Contribution -->
+    <div class="section">
+      <div class="sec-title">
+        Imperfect Eve CSI
+        <span class="contrib-tag">OUR CONTRIBUTION</span>
+      </div>
+      <div class="slider-row">
+        <div class="slider-label">
+          <span class="slider-name">Location Uncertainty σ</span>
+          <span class="slider-val" id="noiseVal">0.0 m</span>
+        </div>
+        <input type="range" class="noise-sl" id="noiseSlider"
+               min="0" max="10" step="0.1" value="0"
+               oninput="updateNoise(this.value)">
+      </div>
+      <div class="csi-box" id="csiError">
+        Perfect CSI — exact Eve location known
+      </div>
+    </div>
+
+    <!-- ══ ρ (Rho) Confidence Panel — OUR VARIABLE ══ -->
+    <div class="section">
+      <div class="sec-title">
+        Eve Location Confidence
+        <span class="contrib-tag" style="background:rgba(139,92,246,0.12);border-color:rgba(139,92,246,0.3);color:#a78bfa;">UA-SAC ρ</span>
+      </div>
+
+      <!-- ρ value display -->
+      <div class="rho-header">
+        <div class="rho-formula">ρ = σ / D<sub>max</sub></div>
+        <div class="rho-value-badge" id="rhoValBadge">ρ = 0.000</div>
+      </div>
+
+      <!-- Segmented confidence gauge -->
+      <div class="conf-gauge-wrap">
+        <div class="conf-gauge" id="confGauge">
+          <div class="conf-fill" id="confFill" style="width:0%"></div>
+          <div class="conf-tick" style="left:25%"></div>
+          <div class="conf-tick" style="left:50%"></div>
+          <div class="conf-tick" style="left:75%"></div>
+        </div>
+        <div class="conf-scale">
+          <span>0</span><span>0.05</span><span>0.1</span><span>0.15</span><span>0.2</span>
+        </div>
+      </div>
+
+      <!-- Confidence label -->
+      <div class="conf-label-row">
+        <div class="conf-dot" id="confDot"></div>
+        <div class="conf-label" id="confLabel">HIGH CONFIDENCE</div>
+        <div class="conf-sublabel" id="confSublabel">Agent jams precisely</div>
+      </div>
+
+      <!-- Entropy scaling readout -->
+      <div class="alpha-row">
+        <div class="alpha-item">
+          <div class="alpha-name">α_base</div>
+          <div class="alpha-val" id="alphaBase">auto</div>
+        </div>
+        <div class="alpha-arrow">×(1 + β·ρ)</div>
+        <div class="alpha-item">
+          <div class="alpha-name">α_eff</div>
+          <div class="alpha-val alpha-eff" id="alphaEff">—</div>
+        </div>
+      </div>
+
+      <!-- Explanation tooltip -->
+      <div class="rho-explain" id="rhoExplain">
+        At ρ = 0: perfect Eve CSI — agent concentrates jamming precisely at Ê.
+      </div>
+    </div>
+
+    <!-- AP Powers (RL mode only) -->
+    <div class="section" id="powerSection">
+      <div class="sec-title" style="justify-content:space-between;">
+        AP Transmit Power (RL Mode)
+        <span id="agentStatus" style="font-size:9px;font-weight:600;letter-spacing:.05em;">○ AI Offline</span>
+      </div>
+      <div class="slider-row">
+        <div class="slider-label">
+          <span class="slider-name">AP 1</span>
+          <span class="slider-val" id="powerVal0">1.00 W</span>
+        </div>
+        <input type="range" class="power-sl" id="powerSlider0"
+               min="0" max="1" step="0.01" value="1.0"
+               oninput="updatePower(0, this.value)">
+      </div>
+      <div class="slider-row">
+        <div class="slider-label">
+          <span class="slider-name">AP 2</span>
+          <span class="slider-val" id="powerVal1">1.00 W</span>
+        </div>
+        <input type="range" class="power-sl" id="powerSlider1"
+               min="0" max="1" step="0.01" value="1.0"
+               oninput="updatePower(1, this.value)">
+      </div>
+      <div class="slider-row">
+        <div class="slider-label">
+          <span class="slider-name">AP 3</span>
+          <span class="slider-val" id="powerVal2">1.00 W</span>
+        </div>
+        <input type="range" class="power-sl" id="powerSlider2"
+               min="0" max="1" step="0.01" value="1.0"
+               oninput="updatePower(2, this.value)">
+      </div>
+      <div class="slider-row">
+        <div class="slider-label">
+          <span class="slider-name">AP 4</span>
+          <span class="slider-val" id="powerVal3">1.00 W</span>
+        </div>
+        <input type="range" class="power-sl" id="powerSlider3"
+               min="0" max="1" step="0.01" value="1.0"
+               oninput="updatePower(3, this.value)">
+      </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="section">
+      <div class="sec-title">Network Metrics</div>
+      <div class="metric-grid">
+        <div class="metric-card">
+          <div class="metric-label">Sum Secrecy</div>
+          <div class="metric-value green" id="metSumSec">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Secrecy Ratio</div>
+          <div class="metric-value green" id="metRatio">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Eve Capacity</div>
+          <div class="metric-value red" id="metEveCap">—</div>
+        </div>
+        <div class="metric-card" style="border-color:rgba(139,92,246,0.25);">
+          <div class="metric-label" style="color:#a78bfa;">Uncertainty ρ</div>
+          <div class="metric-value" style="color:#8b5cf6;" id="metRho">0.000</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Per-user bars -->
+    <div class="section">
+      <div class="sec-title">Per-User Secrecy Capacity</div>
+      <div class="user-bars">
+        <div>
+          <div class="ub-label">
+            <span>User 1</span>
+            <span class="ub-val" id="userLbl0">—</span>
+          </div>
+          <div class="ub-track"><div class="ub-fill" id="userBar0" style="width:0%"></div></div>
+        </div>
+        <div>
+          <div class="ub-label">
+            <span>User 2</span>
+            <span class="ub-val" id="userLbl1">—</span>
+          </div>
+          <div class="ub-track"><div class="ub-fill" id="userBar1" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- How to use -->
+    <div class="section">
+      <div class="sec-title">How to Use</div>
+      <div class="how-to">
+        <b>Drag</b> any node to reposition it.<br>
+        <b>Noise slider</b> blurs Eve's perceived location.<br>
+        <b>Power sliders</b> tune each AP in RL mode.<br>
+        <b>Heatmap</b> shows secrecy potential across the grid.<br>
+        <span class="dot-eve-noisy">■</span> <b>Orange dot</b> — AI's perceived Eve position.<br>
+        <span class="dot-eve-true">■</span> <b>Red dot</b> — Eve's true location (physics ground truth).<br>
+        <span style="color:#8b5cf6;">◉</span> <b>Purple ring</b> — σ uncertainty radius around Eve (1σ).<br>
+        <b>ρ gauge</b> — UA-SAC confidence: how much the agent trusts Ê.
+      </div>
+    </div>
+
+  </div><!-- /panel -->
+</div><!-- /layout -->
+
+<script src="physics.js"></script>
+<script src="state.js"></script>
+<script src="renderer.js"></script>
+<script src="ui.js"></script>
+<script>
+  const canvas = document.getElementById('simCanvas');
+  RENDERER.init(canvas);
+  UI.init(canvas);
+</script>
+</body>
+</html>

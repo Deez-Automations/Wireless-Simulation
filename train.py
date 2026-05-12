@@ -1,10 +1,13 @@
 """
 train.py
-Trains two SAC agents:
-  1. Baseline     — perfect Eve CSI   (csi_noise_std = 0)
-  2. Contribution — imperfect Eve CSI (csi_noise_std > 0)
+Trains 4 SAC agents, one per Eve CSI noise level:
+  1. noise = 0.0m  — perfect Eve CSI (paper baseline)
+  2. noise = 2.0m  — slight location uncertainty
+  3. noise = 5.0m  — moderate location uncertainty
+  4. noise = 10.0m — severe location uncertainty (our contribution)
 
-Results are saved to results/ for comparison plotting.
+Models saved to models/sac_noise_<sigma>.zip
+Results (reward curves) saved to results/
 """
 
 import os
@@ -12,7 +15,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from stable_baselines3 import SAC
 from stable_baselines3.common.callbacks import BaseCallback
-from cfj_env import WirelessJammingEnv
+from env.cfj_env import WirelessJammingEnv
 
 os.makedirs("models", exist_ok=True)
 os.makedirs("results", exist_ok=True)
@@ -43,7 +46,7 @@ def train_agent(noise_std: float, timesteps: int = TIMESTEPS):
 
     model = SAC(
         "MlpPolicy", env,
-        verbose=0,
+        verbose=1,
         learning_rate=3e-4,
         buffer_size=100_000,
         batch_size=256,
