@@ -3,8 +3,7 @@
 
 > **Course:** CY315 — Wireless and Mobile Security · GIKI · Spring 2026  
 > **Track:** Track 2 — Implementation & Optimization  
-> **Baseline Paper:** Hoseini et al., IEEE Globecom Workshops 2024, DOI: 10.1109/GCWKSHPS58843.2023.10465104  
-> **Lead Author:** Muhammad Daniyal (2023406)
+> **Baseline Paper:** Hoseini et al., IEEE Globecom Workshops 2023, DOI: 10.1109/GCWKSHPS58843.2023.10465104  
 
 ---
 
@@ -108,7 +107,7 @@ All plots in `results/phase2/` generated from 100,000-timestep training run and 
 
 ### Plot 1 — System Comparison at σ=10m
 
-![System Comparison](results/phase2/plot1_comparison.png)
+![System Comparison](results/phase2/plot1_comparison_bar.png)
 
 Four systems on identical 4 AP / 2 User / 1 Eve scenarios, evaluated at maximum eavesdropper location uncertainty (σ=10m):
 
@@ -163,7 +162,7 @@ Higher entropy at high ρ means the agent explores more when Eve's location is u
 
 ### Plot 5 — Training Convergence
 
-![Training Convergence](results/phase2/plot5_convergence.png)
+![Training Convergence](results/phase2/uasac_convergence.png)
 
 Worst-case reward R* during 100,000-timestep training:
 
