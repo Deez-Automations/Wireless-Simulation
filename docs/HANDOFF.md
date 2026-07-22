@@ -615,3 +615,30 @@ Last commit: feat: connect dashboard to live SAC agent via Flask bridge
 - Add one paragraph to Limitations acknowledging the inherited AP-association/mobility gaps from Hoseini
 - Get GIKI library access for the 5 paywalled papers (#3, #6, #14, #28, #31 in the working list — see `docs/literature_notes.md`)
 - Rewrite the Literature Review section using the full 35-paper set, subsection-organized (foundations → cooperative jamming → DRL-PLS → robust/CVaR RL theory → non-RL uncertainty competitors → IRS alternatives)
+
+---
+
+### 2026-07-22 — Literature Notes Completed (Phase 1), Set Trimmed and Renumbered to 30
+
+**What was done:**
+
+1. **Finished the full deep-read pass on all accessible papers.** All 28 papers with legitimate free copies got real, verified notes entries in `docs/literature_notes.md` — one paper at a time, template-driven (citation, mechanism, CSI/Eve assumption, their own stated limitations/future work verbatim where possible, direct comparison to our work, and the specific job each paper does in our argument). Standout findings worth remembering without re-reading the whole file:
+   - Three papers spanning three decades (Leung-Yan-Cheong & Hellman 1978, Tekin & Yener 2008, Dong et al. 2010) independently flagged imperfect/unknown eavesdropper CSI as an open problem — strong throughline for the Introduction.
+   - Tekin & Yener (2008) explicitly proposed worst-case design over an uncertain Eve region as future work — 17 years before UA-SAC implements exactly that.
+   - Hoseini et al.'s own paper documents an **empirical** instance of the AP-association mismatch (their scenario 5 underperformed unexpectedly, diagnosed by the authors themselves as caused by fixing association before optimizing power) — real evidence, not speculation, for our own Limitations section.
+   - Bouhafs & den Hartog's 2020 paper (co-authors on our own baseline) claims Eve's location IS detectable by APs — a genuine, unresolved tension with our project's core premise that needs an explicit sentence addressing it, not silence.
+   - Zhou et al. 2026 (near-field robust beamforming) found an "angular-error amplification effect" — the same positional uncertainty produces larger angular error the closer Eve is. Direct critique of our ρ being a single geometry-blind global scalar.
+   - Zhao et al. 2025 and Miao et al. 2026 both offer *certified* robustness guarantees (interval bound propagation, deep-unfolded optimization) — sharp contrast for honestly scoping UA-SAC's robustness as empirical (5-sample Monte Carlo), not certified.
+
+2. **Access reality check: 7 of the original 35 could never be reached** (Csiszár & Körner 1978, Hu/Li 2018, Cui et al. 2019, Rappaport textbook, Khoshafa 2024, Tu 2024, Wang/MAPPO-LSTM 2025) — GIKI library access never came through, HAL link for Khoshafa never resolved. Rather than keep waiting, **dropped 5 of them** (Hu/Li, Cui, Khoshafa, Tu, Wang MAPPO-LSTM — none load-bearing) and **found 2 strong, verified, fully open-access replacements**, both directly on-theme and very current:
+   - **Bui et al. 2026** (arXiv:2603.05062) — deep-learning-driven friendly jamming for secure multicarrier ISAC under unknown Eve location and channel uncertainty. Closest sibling paper in the whole set; resolves Eve-uncertainty via radar echo feedback (an ISAC-only capability our plain-communication Wi-Fi APs don't have) rather than worst-case sampling — a clean, citable architectural contrast.
+   - **Abughalwa et al. 2025** (arXiv:2504.05048) — IRS secrecy for all users under unknown Eve location, non-RL (SCA+LMI convex optimization with a proven local-optimality guarantee), explicit max-min objective. Their Jain's-fairness-index result (≈1.0 for max-min vs. ≈0.2–0.3 for sum-rate maximization) is a clean, quantified precedent for "max-min beats average" independent of RL.
+   - Csiszár & Körner stays correctly cited in the bibliography (foundational, doesn't need a deep-read notes entry) but is no longer part of the numbered set. Rappaport stays as the textbook source for the Friis equations, never was a lit-review paper.
+
+3. **Fully renumbered the notes file to a clean 1–30, no gaps.** Earlier in this process the set was numbered 1–37 with holes wherever a candidate got dropped; since the project is continuing rather than closing out, compressed everything into a straight 1–30 sequence and fixed two internal cross-references that had pointed to pre-renumbering positions. `docs/literature_notes.md` is now the authoritative, stable reference — 30 papers, each with a real write-up, numbered exactly 1 through 30.
+
+**Pending after this session:**
+- Begin Phase 2: write the actual Literature Review prose from these 30 notes entries, subsection-organized as planned (foundations → cooperative jamming lineage → DRL-for-PLS → robust/CVaR RL theory → non-RL uncertainty competitors → IRS alternatives)
+- Address the Bouhafs/den Hartog Eve-detectability tension explicitly somewhere in the paper (Related Work or Limitations)
+- Add the geometry-blind-ρ limitation (from Zhou et al.) and the empirical-not-certified robustness scoping (from Zhao/Miao) to Discussion/Limitations
+- Everything else still pending from the 2026-07-18 entry (regenerate results, orphan-citation fix on `liu`, honest ρ-range statement, AP-association/mobility disclosure) remains open — none of that got touched this session
