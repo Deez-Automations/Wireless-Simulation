@@ -29,71 +29,64 @@ Read → write the entry → move to the next. Not batched.
 
 ---
 
-## Index — 30 real entries, numbered 1–34 (2026-07-22 revision)
+## Index — 30 papers, numbered 1–30, fully compressed (2026-07-22 revision 2)
 
-Numbering rule: **#1–20 are the original bibliography block and never get
-renumbered**, even where a paper inside that range was dropped (kept as a
-placeholder row, e.g. #6, #14) — so nothing that's been referenced by number
-earlier in this project's history shifts. **#21 onward is the "new additions"
-block, renumbered contiguously** with every dropped candidate removed
-entirely (previously scattered 21–37 with gaps at 23/28/31) — no gaps, ends
-at #34. Total real, kept entries: 30. Csiszár & Körner (#3) stays cited in
-the bibliography as-is (foundational, correct) but gets no deep-read notes
-entry. Rappaport (#19) is the textbook source for the Friis path-loss
-equations, not a lit-review paper, excluded from the 30-count entirely.
-Net effect: 30 papers with real notes entries (28 original + 2 new), matching
-the target.
+Fully renumbered, no gaps anywhere — this project is continuing, so the
+earlier "don't shift previously-referenced numbers" constraint no longer
+applies. Every entry below has a full notes write-up in the Entries section.
 
-PDF locations: existing 20's downloads are in `reference papers/`, except Hoseini
-which is in `Baseline_Paper/` (has the actual formal IEEE GC Wkshps version, not
-just arXiv — use `Hoseini Baseline IEEE Formal.pdf`). All files renamed to
-`Author Keyword Keyword.pdf` for identifiability. `Kaur RIS Survey NOTINLIST.pdf`
-was mistakenly downloaded in place of the (now-dropped) Khoshafa et al. survey —
-a different survey entirely (Kaur et al.), verified by content, not one of our
+Not part of the 30, tracked separately: **Csiszár & Körner (1978)** stays
+cited in the bibliography as-is (foundational, correct citation) but has no
+deep-read notes entry — PDF unreachable, not needed for correctness.
+**Rappaport (2002)** is the textbook source for the Friis path-loss
+equations used in the System Model section — never a lit-review paper,
+not counted here at all.
+
+Dropped entirely (paywalled, none load-bearing, no longer tracked by number):
+Hu/Li et al. 2018 (IoT cooperative jamming), Cui, Zhang & Zhang 2019 (IRS
+secure comm), Khoshafa et al. 2024, Tu et al. 2024, Wang et al. (MAPPO-LSTM)
+2025.
+
+PDF locations: downloads are in `reference papers/`, except Hoseini which is
+in `Baseline_Paper/` (has the actual formal IEEE GC Wkshps version, not just
+arXiv — use `Hoseini Baseline IEEE Formal.pdf`). All files renamed to
+`Author Keyword Keyword.pdf` for identifiability. `Kaur RIS Survey
+NOTINLIST.pdf` was mistakenly downloaded in place of the (dropped) Khoshafa
+et al. survey — a different survey entirely (Kaur et al.), not one of our
 30 — keep it out of the reading queue.
 
 | # | Paper | Status |
 |---|---|---|
 | 1 | Wyner (1975), wiretap channel | **Done** |
 | 2 | Leung-Yan-Cheong & Hellman (1978), Gaussian wiretap | **Done** |
-| 3 | Csiszár & Körner (1978), broadcast channels | **Keep cited, no notes** — foundational, already correct in bibliography, PDF unreachable but not needed for correctness |
-| 4 | Tekin & Yener (2008) | **Done** |
-| 5 | Dong et al. (2010), cooperating relays | **Done** |
-| 6 | Hu/Li et al. (2018), IoT cooperative jamming | **Dropped** — paywalled, not load-bearing |
-| 7 | Luong et al. (2019), DRL survey | **Done** |
-| 8 | Nasir & Guo (2019) | **Done** |
-| 9 | Li et al. (2018), network slicing | **Done** |
-| 10 | Haarnoja et al. (2018), SAC (ICML) | **Done** |
-| 11 | Haarnoja et al. (2018/19), SAC algorithms & applications | **Done** |
-| 12 | Mukherjee & Swindlehurst (2011) | **Done** |
-| 13 | Wang et al. (2014), outage-constrained MISO | **Done — flag: not actually a PLS paper, see notes** |
-| 14 | Cui, Zhang & Zhang (2019), IRS secure comm | **Dropped** — paywalled, covered adequately by Xiao/Zhou/Yang instead |
-| 15 | Yang et al. (2021), DRL-based IRS | **Done** |
-| 16 | Bouhafs et al. (2018), Wi-5 | **Done** |
-| 17 | Bouhafs et al. (2020), spectrum programmability PLS | **Done — flags a real assumption conflict with our own baseline's co-authors, needs addressing** |
-| 18 | Hoseini et al. (2023/2024), baseline | **Done — found empirical evidence (scenario 5) of the AP-association mismatch problem in their own results** |
-| 19 | Rappaport (2002), textbook | **N/A** — system-model textbook citation (Friis equations), not a lit-review paper, out of the 30-count entirely |
-| 20 | Liu et al. (2017), PLS survey (orphan — fix or cut) | **Done — real fix found: cite for compound wiretap channels / statistical CSI, not generically** |
-| 21 | Zhao et al. (2025) | **Done** |
-| 22 | Liu et al. (2024), SAC covert comm | **Done** |
-| 23 | Tanabe et al. (M2TD3), 2022 | **Done** |
-| 24 | Lanier et al. (FARR), 2022 | **Done** |
-| 25 | Chen et al. (domain randomization), 2022 | **Done** |
-| 26 | Wang, Kallus, Sun (CVaR-RL), 2023 | **Done** |
-| 27 | Xing et al. (2024) | **Done — real evidence joint association+power learning is tractable, relevant to our own limitation** |
-| 28 | Tripathi et al. (2024) | **Done** |
-| 29 | Miao et al. (2026) | **Done** |
-| 30 | Zhou et al. (2026) | **Done** |
-| 31 | Xiao et al. (STAR-RIS), 2025 | **Done** |
-| 32 | AN survey (2025) | **Done** |
-| 33 | Bui, Nguyen et al. (2026), DL-driven friendly jamming for ISAC | **Done** |
-| 34 | Abughalwa et al. (2025), IRS secure comms under unknown Eve location | **Done** |
-
-Dropped entirely (were #6, #14→kept at #14 as dropped marker since within
-the fixed 1–20 block, #23, #28, #31 in the old numbering): Hu/Li et al. 2018,
-Khoshafa et al. 2024, Tu et al. 2024, Wang et al. (MAPPO-LSTM) 2025 — all
-paywalled, none load-bearing. Csiszár & Körner stays cited without deep-read
-notes. Rappaport is a textbook citation, outside the count.
+| 3 | Tekin & Yener (2008) | **Done** |
+| 4 | Dong et al. (2010), cooperating relays | **Done** |
+| 5 | Luong et al. (2019), DRL survey | **Done** |
+| 6 | Nasir & Guo (2019) | **Done** |
+| 7 | Li et al. (2018), network slicing | **Done** |
+| 8 | Haarnoja et al. (2018), SAC (ICML) | **Done** |
+| 9 | Haarnoja et al. (2018/19), SAC algorithms & applications | **Done** |
+| 10 | Mukherjee & Swindlehurst (2011) | **Done** |
+| 11 | Wang et al. (2014), outage-constrained MISO | **Done — flag: not actually a PLS paper, see notes** |
+| 12 | Yang et al. (2021), DRL-based IRS | **Done** |
+| 13 | Bouhafs et al. (2018), Wi-5 | **Done** |
+| 14 | Bouhafs et al. (2020), spectrum programmability PLS | **Done — flags a real assumption conflict with our own baseline's co-authors, needs addressing** |
+| 15 | Hoseini et al. (2023/2024), baseline | **Done — found empirical evidence (scenario 5) of the AP-association mismatch problem in their own results** |
+| 16 | Liu et al. (2017), PLS survey (orphan — fix or cut) | **Done — real fix found: cite for compound wiretap channels / statistical CSI, not generically** |
+| 17 | Zhao et al. (2025) | **Done** |
+| 18 | Liu et al. (2024), SAC covert comm | **Done** |
+| 19 | Tanabe et al. (M2TD3), 2022 | **Done** |
+| 20 | Lanier et al. (FARR), 2022 | **Done** |
+| 21 | Chen et al. (domain randomization), 2022 | **Done** |
+| 22 | Wang, Kallus, Sun (CVaR-RL), 2023 | **Done** |
+| 23 | Xing et al. (2024) | **Done — real evidence joint association+power learning is tractable, relevant to our own limitation** |
+| 24 | Tripathi et al. (2024) | **Done** |
+| 25 | Miao et al. (2026) | **Done** |
+| 26 | Zhou et al. (2026) | **Done** |
+| 27 | Xiao et al. (STAR-RIS), 2025 | **Done** |
+| 28 | AN survey (2025) | **Done** |
+| 29 | Bui, Nguyen et al. (2026), DL-driven friendly jamming for ISAC | **Done** |
+| 30 | Abughalwa et al. (2025), IRS secure comms under unknown Eve location | **Done** |
 
 ---
 
@@ -139,7 +132,7 @@ notes. Rappaport is a textbook citation, outside the count.
 
 **Why it's in our lit review:** Two jobs at once — (1) it's the direct source of our secrecy capacity formula's exact algebraic shape (more precisely than Wyner's abstract mutual-information version), and (2) it's a striking, citable "even the foundational papers knew CSI uncertainty was a problem" moment that strengthens our motivation section — this isn't a new concern we invented, it's a 47-year-old open question we're finally giving a concrete answer to in a modern DRL setting.
 
-## 4. Tekin & Yener, 2008 — The Gaussian Multiple Access Wire-Tap Channel
+## 3. Tekin & Yener, 2008 — The Gaussian Multiple Access Wire-Tap Channel
 
 **Citation:** E. Tekin and A. Yener, "The Gaussian Multiple Access Wire-Tap Channel," *IEEE Trans. Inform. Theory*, vol. 54, no. 12, pp. 5747–5755, Dec. 2008.
 **Link:** http://wcan.ee.psu.edu/papers/TY_IT2008Dec.pdf
@@ -159,7 +152,7 @@ notes. Rappaport is a textbook citation, outside the count.
 
 **Why it's in our lit review:** One of the strongest citations in the whole set. Most papers we cite are either mechanistically similar or conceptually similar to our contribution — this one is both, and it predicted the exact shape of our solution as an open problem in 2008. Worth a dedicated sentence in the Introduction or Related Work, not just a list-citation: "worst-case design over an uncertain eavesdropper region was proposed as future work as early as [Tekin & Yener, 2008] and, to our knowledge, remains unrealized in a learning-based cooperative-jamming setting until this work."
 
-## 5. Dong, Han, Petropulu & Poor, 2010 — Improving Wireless Physical Layer Security via Cooperating Relays
+## 4. Dong, Han, Petropulu & Poor, 2010 — Improving Wireless Physical Layer Security via Cooperating Relays
 
 **Citation:** L. Dong, Z. Han, A. P. Petropulu, and H. V. Poor, "Improving Wireless Physical Layer Security via Cooperating Relays," *IEEE Trans. Signal Processing*, vol. 58, no. 3, pp. 1875–1888, Mar. 2010.
 **Link:** https://www.researchgate.net/publication/220322052
@@ -179,7 +172,7 @@ notes. Rappaport is a textbook citation, outside the count.
 
 **Why it's in our lit review:** Third consecutive paper in this chronological review (1978 → 2008 → 2010) to independently flag imperfect/statistical-only eavesdropper CSI as an acknowledged open limitation. That's a genuinely strong pattern to name explicitly in our own Related Work — this isn't a niche concern we invented, it's a recurring, repeatedly-unaddressed gap spanning three decades of foundational PLS work. Also useful as the "cooperative jamming" terminology's early lineage, distinct from our own "cooperative *friendly* jamming" framing (Hoseini's term, reusing existing AP infrastructure rather than dedicated relays).
 
-## 7. Luong et al., 2019 — Applications of Deep Reinforcement Learning in Communications and Networking: A Survey
+## 5. Luong et al., 2019 — Applications of Deep Reinforcement Learning in Communications and Networking: A Survey
 
 **Citation:** N. C. Luong, D. T. Hoang, S. Gong, D. Niyato, P. Wang, Y.-C. Liang, and D. I. Kim, "Applications of Deep Reinforcement Learning in Communications and Networking: A Survey," *IEEE Commun. Surveys Tuts.*, vol. 21, no. 4, pp. 3133–3174, 4th Quarter 2019.
 **Link:** https://arxiv.org/abs/1810.07862
@@ -199,7 +192,7 @@ notes. Rappaport is a textbook citation, outside the count.
 
 **Why it's in our lit review:** Background/recency-lineage citation for "DRL for wireless" broadly, sitting alongside Nasir & Guo and Li et al. (network slicing) as evidence that DRL had already proven itself across multiple networking subdomains before Hoseini et al. applied it to cooperative jamming specifically. Keep it as a one-line supporting citation in the Introduction/Related Work, not a paragraph — it doesn't carry enough PLS-specific weight for more than that.
 
-## 8. Nasir & Guo, 2019 — Multi-Agent Deep Reinforcement Learning for Dynamic Power Allocation in Wireless Networks
+## 6. Nasir & Guo, 2019 — Multi-Agent Deep Reinforcement Learning for Dynamic Power Allocation in Wireless Networks
 
 **Citation:** Y. S. Nasir and D. Guo, "Multi-Agent Deep Reinforcement Learning for Dynamic Power Allocation in Wireless Networks," *IEEE J. Sel. Areas Commun.*, vol. 37, no. 10, pp. 2239–2250, Oct. 2019.
 **Link:** https://arxiv.org/abs/1808.00490
@@ -219,7 +212,7 @@ notes. Rappaport is a textbook citation, outside the count.
 
 **Why it's in our lit review:** Supports two claims at once — (1) DRL for power control robust to imperfect CSI has real precedent, predating our imperfect-Eve-CSI framing by six years, even outside the secrecy context; (2) it's a clean example of the field's broader move from centralized-full-CSI to distributed-partial-CSI designs, a trend our own uncertainty-aware framing fits into naturally.
 
-## 9. Li et al., 2018 — Deep Reinforcement Learning for Resource Management in Network Slicing
+## 7. Li et al., 2018 — Deep Reinforcement Learning for Resource Management in Network Slicing
 
 **Citation:** R. Li, Z. Zhao, Q. Sun, C.-L. I, C. Yang, X. Chen, M. Zhao, and H. Zhang, "Deep Reinforcement Learning for Resource Management in Network Slicing," *IEEE Access*, vol. 6, pp. 74429–74441, 2018.
 **Link:** https://doi.org/10.1109/ACCESS.2018.2881964
@@ -239,7 +232,7 @@ notes. Rappaport is a textbook citation, outside the count.
 
 **Why it's in our lit review:** Same role as the Luong survey — evidence that DRL was already a proven, general-purpose tool across multiple 5G/networking subdomains (here: slicing) well before Hoseini et al. applied it to cooperative jamming specifically. One-line supporting citation only; doesn't warrant more space than that.
 
-## 10. Haarnoja, Zhou, Abbeel & Levine, 2018 — Soft Actor-Critic (ICML)
+## 8. Haarnoja, Zhou, Abbeel & Levine, 2018 — Soft Actor-Critic (ICML)
 
 **Citation:** T. Haarnoja, A. Zhou, P. Abbeel, and S. Levine, "Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor," in *Proc. ICML*, PMLR vol. 80, pp. 1856–1865, 2018.
 **Link:** https://arxiv.org/abs/1801.01290
@@ -257,9 +250,9 @@ notes. Rappaport is a textbook citation, outside the count.
 
 **Vs. our work:** This is the direct algorithmic parent of both the baseline SAC and our UA-SAC. Two points worth being precise about: (1) the "reward scale is the only hyperparameter that matters" finding is exactly the temperature/entropy-coefficient sensitivity that motivates UA-SAC's α_eff scaling — we're not inventing a new sensitivity, we're exploiting a known one (uncertainty should shift the operating point along the exploration/exploitation axis this paper already identified as critical). (2) the original SAC treats the entropy coefficient α as a single global scalar tuned once (or auto-tuned via the dual-objective extension in the companion paper); UA-SAC's batch-average ρ-scaling is a direct, minimal modification of that single global scalar into a state-conditioned one — worth stating explicitly as "the smallest change to Haarnoja et al.'s formulation that makes α uncertainty-aware," since it clarifies exactly how surgical our algorithmic change is.
 
-**Why it's in our lit review:** Not a competitor, not a comparison point — it's the algorithm itself. Every equation in our Methodology section that touches α, the entropy term, or the actor/critic loss traces directly back to this paper. Cite early, cite precisely (the auto-tuning behavior we rely on for α_base is actually from the *companion* paper — see #11 below, not this one).
+**Why it's in our lit review:** Not a competitor, not a comparison point — it's the algorithm itself. Every equation in our Methodology section that touches α, the entropy term, or the actor/critic loss traces directly back to this paper. Cite early, cite precisely (the auto-tuning behavior we rely on for α_base is actually from the *companion* paper — see #9 below, not this one).
 
-## 11. Haarnoja et al., 2018/19 — Soft Actor-Critic Algorithms and Applications
+## 9. Haarnoja et al., 2018/19 — Soft Actor-Critic Algorithms and Applications
 
 **Citation:** T. Haarnoja, A. Zhou, K. Hartikainen, G. Tucker, S. Ha, J. Tan, V. Kumar, H. Zhu, A. Gupta, P. Abbeel, and S. Levine, "Soft Actor-Critic Algorithms and Applications," arXiv:1812.05905, 2018 (revised Jan. 2019).
 **Link:** https://arxiv.org/abs/1812.05905
@@ -279,7 +272,7 @@ notes. Rappaport is a textbook citation, outside the count.
 
 **Why it's in our lit review:** The direct mathematical source of our `α_base` auto-tuning mechanism — more precise and more load-bearing for our Methodology section than the original ICML paper, since this is specifically where the constrained-optimization/dual-variable derivation UA-SAC builds on top of actually comes from.
 
-## 12. Mukherjee & Swindlehurst, 2011 — Robust Beamforming for Security in MIMO Wiretap Channels with Imperfect CSI
+## 10. Mukherjee & Swindlehurst, 2011 — Robust Beamforming for Security in MIMO Wiretap Channels with Imperfect CSI
 
 **Citation:** A. Mukherjee and A. L. Swindlehurst, "Robust Beamforming for Security in MIMO Wiretap Channels With Imperfect CSI," *IEEE Trans. Signal Processing*, vol. 59, no. 1, pp. 351–361, Jan. 2011.
 **Link:** https://arxiv.org/abs/1009.2274
@@ -299,7 +292,7 @@ notes. Rappaport is a textbook citation, outside the count.
 
 **Why it's in our lit review:** Strong technical comparator for the Related Work section on "prior robust approaches to CSI uncertainty" — it's beamforming/AN rather than cooperative jamming/RL, has no eavesdropper location model at all (works off statistics, not position), and its own stated failure mode (catastrophic breakdown past a CSI-error threshold) is a genuinely useful contrast against RL-learned robustness.
 
-## 13. Wang, So, Chang, Ma & Chi, 2014 — Outage Constrained Robust Transmit Optimization for Multiuser MISO Downlinks
+## 11. Wang, So, Chang, Ma & Chi, 2014 — Outage Constrained Robust Transmit Optimization for Multiuser MISO Downlinks
 
 **Citation:** K.-Y. Wang, A. M.-C. So, T.-H. Chang, W.-K. Ma, and C.-Y. Chi, "Outage Constrained Robust Transmit Optimization for Multiuser MISO Downlinks: Tractable Approximations by Conic Optimization," *IEEE Trans. Signal Processing*, vol. 62, no. 21, pp. 5690–5705, Nov. 2014.
 **Link:** https://www1.se.cuhk.edu.hk/~manchoso/papers/outage_txbeam-TSP.pdf
@@ -321,7 +314,7 @@ notes. Rappaport is a textbook citation, outside the count.
 
 **Why it's in our lit review — and this needs a decision, not just a citation:** As currently framed (grouped with Mukherjee as PLS precedent), this citation is **inaccurate** and a careful reviewer familiar with the paper would notice it has nothing to do with secrecy. Two honest options: (1) recast it purely as a general robust-optimization-under-CSI-uncertainty methodology citation, separate from the PLS-specific cluster, or (2) drop it and lean on Mukherjee alone for that role, since Mukherjee actually *is* a secrecy paper with the same "robust under CSI error" theme. Recommend option 1 if the citation count matters, option 2 if precision matters more — but do not leave it silently mislabeled as a PLS paper.
 
-## 15. Yang, Xiong, Zhao, Niyato, Xiao & Wu, 2021 — DRL-Based Intelligent Reflecting Surface for Secure Wireless Communications
+## 12. Yang, Xiong, Zhao, Niyato, Xiao & Wu, 2021 — DRL-Based Intelligent Reflecting Surface for Secure Wireless Communications
 
 **Citation:** H. Yang, Z. Xiong, J. Zhao, D. Niyato, L. Xiao, and Q. Wu, "Deep Reinforcement Learning Based Intelligent Reflecting Surface for Secure Wireless Communications," *IEEE Trans. Wireless Commun.*, vol. 20, no. 1, pp. 375–388, Jan. 2021.
 **Link:** https://arxiv.org/abs/2002.12271
@@ -341,7 +334,7 @@ notes. Rappaport is a textbook citation, outside the count.
 
 **Why it's in our lit review:** Represents the IRS branch of DRL-for-PLS, parallel to (not competing directly with) the cooperative-jamming branch we're in. Also gives us a citable, in-literature critique of jamming-based approaches (extra power cost) that we should address head-on in Discussion rather than let a reviewer raise it first.
 
-## 16. Bouhafs et al., 2018 — Wi-5: A Programming Architecture for Unlicensed Frequency Bands
+## 13. Bouhafs et al., 2018 — Wi-5: A Programming Architecture for Unlicensed Frequency Bands
 
 **Citation:** F. Bouhafs, M. Mackay, A. Raschellà, Q. Shi, F. den Hartog, J. Saldana, R. Munilla, J. Ruiz-Mas, J. Fernández-Navajas, J. Almodovar, and N. van Adrichem, "Wi-5: A Programming Architecture for Unlicensed Frequency Bands," *IEEE Commun. Mag.*, 2018.
 **Link:** https://zaguan.unizar.es/record/85397/files/texto_completo.pdf
@@ -361,13 +354,13 @@ notes. Rappaport is a textbook citation, outside the count.
 
 **Why it's in our lit review:** Grounds the deployability claim. When the paper says cooperative friendly jamming "requires no additional hardware" and can run on "existing infrastructure," this is the citation that backs that claim with a real, demonstrated system rather than an assumption.
 
-## 17. Bouhafs et al., 2020 — Realizing Physical Layer Security in Large Wireless Networks Using Spectrum Programmability
+## 14. Bouhafs et al., 2020 — Realizing Physical Layer Security in Large Wireless Networks Using Spectrum Programmability
 
 **Citation:** F. Bouhafs, F. den Hartog, A. Raschellà, M. Mackay, Q. Shi, and S. Sinanovic, "Realizing Physical Layer Security in Large Wireless Networks Using Spectrum Programmability," in *2020 IEEE Globecom Workshops (GC Wkshps)*, 2020, DOI: 10.1109/GCWkshps50303.2020.9367399.
 **Link:** https://researchonline.gcu.ac.uk/ws/portalfiles/portal/44677213/
 **Source read:** Full PDF, author-accepted-manuscript version (ResearchOnline GCU repository copy) — real text layer, read in full including the Adversary Model and Conclusion sections. My first pass at this entry (before actually reading the body) assumed it was about jamming/power control — it isn't. Corrected below.
 
-**What it does:** Proposes a secrecy-aware **AP selection algorithm** — not jamming, not power control — that connects a Wi-Fi user to whichever AP offers the highest secrecy capacity, implemented on the Wi-5 spectrum programming architecture (#16). Evaluated in a 300m×300m simulated Wi-Fi network. First paper of its kind, per the authors, to apply PLS to secure a *complete* wireless network rather than a single link.
+**What it does:** Proposes a secrecy-aware **AP selection algorithm** — not jamming, not power control — that connects a Wi-Fi user to whichever AP offers the highest secrecy capacity, implemented on the Wi-5 spectrum programming architecture (#13). Evaluated in a 300m×300m simulated Wi-Fi network. First paper of its kind, per the authors, to apply PLS to secure a *complete* wireless network rather than a single link.
 
 **Core mechanism:** Secrecy-rate-based AP selection: for each user, compute the secrecy rate achievable at each candidate AP against the nearest/strongest eavesdropper, pick the AP that maximizes it. No jamming, no power optimization — pure association-layer decision.
 
@@ -381,7 +374,7 @@ notes. Rappaport is a textbook citation, outside the count.
 
 **Why it's in our lit review:** Two jobs — (1) completes the infrastructure-to-security lineage (Wi-5 general architecture → this paper applying it to PLS via AP selection → Hoseini et al. adding DRL-based power optimization on top), and (2) forces an honest reckoning with the "is Eve's location actually knowable" question using a source that can't be dismissed as external or irrelevant — it's our own baseline's co-authors' other work. Address this directly in the paper rather than hope nobody cross-references it.
 
-## 18. Hoseini, Bouhafs, Aboutorab, Sadeghi & den Hartog, 2023/2024 — Cooperative Jamming for Physical Layer Security Enhancement Using Deep Reinforcement Learning (OUR BASELINE)
+## 15. Hoseini, Bouhafs, Aboutorab, Sadeghi & den Hartog, 2023/2024 — Cooperative Jamming for Physical Layer Security Enhancement Using Deep Reinforcement Learning (OUR BASELINE)
 
 **Citation:** S. A. Hoseini, F. Bouhafs, N. Aboutorab, P. Sadeghi, and F. den Hartog, "Cooperative Jamming for Physical Layer Security Enhancement Using Deep Reinforcement Learning," in *2023 IEEE Globecom Workshops (GC Wkshps)*, pp. 1838–1843, DOI: 10.1109/GCWkshps58843.2023.10465104.
 **Link:** `Baseline_Paper/Hoseini Baseline IEEE Formal.pdf` (formal published version, DOI header confirmed present in the file itself — not the arXiv preprint)
@@ -401,7 +394,7 @@ notes. Rappaport is a textbook citation, outside the count.
 
 **Why it's in our lit review:** The center of gravity for the entire paper. Cited most heavily, described most precisely, and — per this session's finding — should be cited for more than just "the baseline we extend": the scenario-5 empirical observation is a genuinely strong, concrete piece of evidence to cite when acknowledging the AP-association limitation in our own Limitations section, since it shows the problem isn't speculative, it's something the original authors watched happen in their own results.
 
-## 20. Liu, Chen & Wang, 2017 — Physical Layer Security for Next Generation Wireless Networks: Theories, Technologies, and Challenges (the orphan)
+## 16. Liu, Chen & Wang, 2017 — Physical Layer Security for Next Generation Wireless Networks: Theories, Technologies, and Challenges (the orphan)
 
 **Citation:** Y. Liu, H.-H. Chen, and L. Wang, "Physical Layer Security for Next Generation Wireless Networks: Theories, Technologies, and Challenges," *IEEE Commun. Surveys Tuts.*, vol. 19, no. 1, pp. 347–376, 1st Quarter 2017.
 **Link:** https://www.researchgate.net/publication/310824849
@@ -421,7 +414,7 @@ notes. Rappaport is a textbook citation, outside the count.
 
 **Why it's in our lit review, and the actual fix for the orphan problem:** Currently cited nowhere in the body — that's the defect flagged repeatedly this session. The fix: cite it specifically in the imperfect-CSI discussion, next to Mukherjee/Xiao, for its coverage of compound wiretap channels and statistical CSI approaches — not as a generic "PLS exists" citation (which is what an orphan citation usually turns into if forced in later). This gives it a genuine, specific job instead of just closing the orphan gap cosmetically.
 
-## 21. Zhao, Li, Si, Huang, Hu, Quek & Al-Dhahir, 2025 — DRL-Based Robust Multi-Timescale Anti-Jamming Approaches under State Uncertainty
+## 17. Zhao, Li, Si, Huang, Hu, Quek & Al-Dhahir, 2025 — DRL-Based Robust Multi-Timescale Anti-Jamming Approaches under State Uncertainty
 
 **Citation:** H. Zhao, Z. Li, J. Si, R. Huang, H. Hu, T. Q. S. Quek, and N. Al-Dhahir, "DRL-Based Robust Multi-Timescale Anti-Jamming Approaches under State Uncertainty," *IEEE Trans. Cognitive Commun. Networking*, 2025 (arXiv:2511.03305).
 **Link:** https://arxiv.org/abs/2511.03305
@@ -441,7 +434,7 @@ notes. Rappaport is a textbook citation, outside the count.
 
 **Why it's in our lit review:** Sharpest available contrast on rigor. Cite it specifically where the paper claims robustness, to preempt the "is this actually guaranteed?" question a careful reviewer will ask — better to raise and honestly answer it ourselves using this exact comparator than have a reviewer raise it first.
 
-## 22. Liu, Wen, Zhang, Zhu, Zhang, Nie & Kang, 2024 — Learning-Based Power Control for Secure Covert Semantic Communication
+## 18. Liu, Wen, Zhang, Zhu, Zhang, Nie & Kang, 2024 — Learning-Based Power Control for Secure Covert Semantic Communication
 
 **Citation:** Y. Liu, J. Wen, Z. Zhang, K. Zhu, Y. Zhang, J. Nie, and J. Kang, "Learning-based Power Control for Secure Covert Semantic Communication," arXiv:2407.07475, 2024 (revised 2025).
 **Link:** https://arxiv.org/abs/2407.07475
@@ -459,9 +452,9 @@ notes. Rappaport is a textbook citation, outside the count.
 
 **Vs. our work:** The closest SAC-plus-jammer methodological analog to our own algorithm outside the baseline itself — same base algorithm (SAC), same two-role structure (a transmitter and a deliberately-adversarial-to-the-attacker jammer, jointly power-controlled). Genuinely useful evidence that SAC is an actively current, non-arbitrary choice for exactly this kind of jammer-power-control problem, published the same year work on this project's Phase 1 began. Key structural difference: their "friendly jammer" is a single dedicated role distinguishing transmitter-power from jammer-power explicitly in the action space; ours has no such distinction — every AP's power is a single undifferentiated continuous output, serving or jamming determined only by the (fixed) association step.
 
-**Why it's in our lit review:** Strongest available "SAC is a live, current choice for this exact class of problem" citation — not physical layer secrecy, but structurally the nearest thing to our own algorithm-plus-role setup found anywhere in the 35-paper set.
+**Why it's in our lit review:** Strongest available "SAC is a live, current choice for this exact class of problem" citation — not physical layer secrecy, but structurally the nearest thing to our own algorithm-plus-role setup found anywhere in the 30-paper set.
 
-## 23. Tanabe, Sato, Fukuchi, Sakuma & Akimoto, 2022 — Max-Min Off-Policy Actor-Critic Method Focusing on Worst-Case Robustness to Model Misspecification (M2TD3)
+## 19. Tanabe, Sato, Fukuchi, Sakuma & Akimoto, 2022 — Max-Min Off-Policy Actor-Critic Method Focusing on Worst-Case Robustness to Model Misspecification (M2TD3)
 
 **Citation:** T. Tanabe, R. Sato, K. Fukuchi, J. Sakuma, and Y. Akimoto, "Max-Min Off-Policy Actor-Critic Method Focusing on Worst-Case Robustness to Model Misspecification," in *Proc. NeurIPS*, 2022 (arXiv:2211.03413).
 **Link:** https://arxiv.org/abs/2211.03413
@@ -481,7 +474,7 @@ notes. Rappaport is a textbook citation, outside the count.
 
 **Why it's in our lit review:** The single best piece of RL theory explaining *why* training against a worst-case signal (rather than an average one) is a principled, established approach — not something invented for this project. Also the clearest way to state, precisely, what UA-SAC's simplification actually costs relative to the more rigorous adversarial alternative.
 
-## 24. Lanier, McAleer, Baldi & Fox, 2022 — Feasible Adversarial Robust Reinforcement Learning for Underspecified Environments (FARR)
+## 20. Lanier, McAleer, Baldi & Fox, 2022 — Feasible Adversarial Robust Reinforcement Learning for Underspecified Environments (FARR)
 
 **Citation:** J. B. Lanier, S. McAleer, P. Baldi, and R. Fox, "Feasible Adversarial Robust Reinforcement Learning for Underspecified Environments," in *Proc. NeurIPS*, 2022 (arXiv:2207.09597).
 **Link:** https://arxiv.org/abs/2207.09597
@@ -501,7 +494,7 @@ notes. Rappaport is a textbook citation, outside the count.
 
 **Why it's in our lit review:** The clearest citation for defending *why* σ is bounded at all rather than trained against an unlimited worst case — FARR's entire contribution is a formal treatment of exactly that design question.
 
-## 25. Chen, Hu, Jin, Li & Wang, 2022 — Understanding Domain Randomization for Sim-to-Real Transfer
+## 21. Chen, Hu, Jin, Li & Wang, 2022 — Understanding Domain Randomization for Sim-to-Real Transfer
 
 **Citation:** X. Chen, J. Hu, C. Jin, L. Li, and L. Wang, "Understanding Domain Randomization for Sim-to-Real Transfer," in *Proc. ICLR*, 2022 (arXiv:2110.03239).
 **Link:** https://arxiv.org/abs/2110.03239
@@ -521,7 +514,7 @@ notes. Rappaport is a textbook citation, outside the count.
 
 **Why it's in our lit review:** Background theoretical justification for why training across randomized σ generalizes at all — but use it narrowly. It explains why sampling σ uniformly per episode is a sound way to get one policy that works across all uncertainty levels; it does *not* explain or justify the worst-case-over-M-Eve-samples part of R*, which needs Tanabe/Lanier/Wang-Kallus-Sun instead. Don't let one citation do the work of two different ideas.
 
-## 26. Wang, Kallus & Sun, 2023 — Near-Minimax-Optimal Risk-Sensitive Reinforcement Learning with CVaR
+## 22. Wang, Kallus & Sun, 2023 — Near-Minimax-Optimal Risk-Sensitive Reinforcement Learning with CVaR
 
 **Citation:** K. Wang, N. Kallus, and W. Sun, "Near-Minimax-Optimal Risk-Sensitive Reinforcement Learning with CVaR," in *Proc. ICML*, 2023 (arXiv:2302.03201).
 **Link:** https://arxiv.org/abs/2302.03201
@@ -541,7 +534,7 @@ notes. Rappaport is a textbook citation, outside the count.
 
 **Why it's in our lit review:** The correct formal name and definition for the risk measure our reward function approximates. Cite once, precisely, to give R* a real theoretical name (CVaR-style worst-case objective) rather than leaving it as an unnamed heuristic — but resist the temptation to borrow their regret bounds, which don't transfer to our setting.
 
-## 27. Xing, Qin, Du, Wang & Zhang, 2024 — Deep Reinforcement Learning-Driven Jamming-Enhanced Secure UAV Communications
+## 23. Xing, Qin, Du, Wang & Zhang, 2024 — Deep Reinforcement Learning-Driven Jamming-Enhanced Secure UAV Communications
 
 **Citation:** Z. Xing, Y. Qin, C. Du, W. Wang, and Z. Zhang, "Deep Reinforcement Learning-Driven Jamming-Enhanced Secure Unmanned Aerial Vehicle Communications," *Sensors*, vol. 24, no. 22, article 7328, Nov. 2024.
 **Link:** https://pmc.ncbi.nlm.nih.gov/articles/PMC11598403/
@@ -561,7 +554,7 @@ notes. Rappaport is a textbook citation, outside the count.
 
 **Why it's in our lit review:** Does double duty — reinforces that max-min/worst-case objectives are an active, current design choice in DRL-for-secrecy (not unique to us), and gives concrete, citable evidence that our own AP-association gap is genuinely closeable, since someone else has already closed the equivalent gap in a UAV setting.
 
-## 28. Tripathi, Kundu, Yadav, Bansal, Claussen & Ho, 2024 — Joint Transmit and Jamming Power Optimization for Secrecy in Energy Harvesting Networks
+## 24. Tripathi, Kundu, Yadav, Bansal, Claussen & Ho, 2024 — Joint Transmit and Jamming Power Optimization for Secrecy in Energy Harvesting Networks
 
 **Citation:** S. Tripathi, C. Kundu, A. Yadav, A. Bansal, H. Claussen, and L. Ho, "Joint Transmit and Jamming Power Optimization for Secrecy in Energy Harvesting Networks: A Reinforcement Learning Approach," arXiv:2407.17435, 2024 (revised 2025).
 **Link:** https://arxiv.org/abs/2407.17435
@@ -581,7 +574,7 @@ notes. Rappaport is a textbook citation, outside the count.
 
 **Why it's in our lit review:** Best available citation for precisely scoping *when* the "Eve CSI is known" assumption is and isn't reasonable — turns a potential weakness (why do so many papers assume known CSI?) into a clean, defensible boundary condition for our own contribution.
 
-## 29. Miao, Song, Li, Li, Liu, Shao & Wang, 2026 — RIS-Aided Physical Layer Security with Imperfect CSI: A Robust Model-Driven Deep Learning Approach
+## 25. Miao, Song, Li, Li, Liu, Shao & Wang, 2026 — RIS-Aided Physical Layer Security with Imperfect CSI: A Robust Model-Driven Deep Learning Approach
 
 **Citation:** R. Miao, Z. Song, Y. Li, X. Li, L. Liu, G. Shao, and B. Wang, "RIS-Aided Physical Layer Security with Imperfect CSI: A Robust Model-Driven Deep Learning Approach," *Entropy*, vol. 28, no. 4, article 457, Apr. 2026.
 **Link:** https://www.mdpi.com/1099-4300/28/4/457
@@ -601,7 +594,7 @@ notes. Rappaport is a textbook citation, outside the count.
 
 **Why it's in our lit review:** Sharpest "why RL and not something else" comparator — shows a real, current (2026), legitimate alternative ML paradigm for handling imperfect Eve CSI, and gives a precise, honest reason why it doesn't fit our problem structure as well as RL does.
 
-## 30. Zhou, You, Zhou, Xing & Zhang, 2026 — Near-Field Physical Layer Security: Robust Beamforming under Location Uncertainty
+## 26. Zhou, You, Zhou, Xing & Zhang, 2026 — Near-Field Physical Layer Security: Robust Beamforming under Location Uncertainty
 
 **Citation:** C. Zhou, C. You, C. Zhou, C. Xing, and J. Zhang, "Near-Field Physical Layer Security: Robust Beamforming under Location Uncertainty," *IEEE Trans. Wireless Commun.*, vol. 25, pp. 17384–17398, 2026 (arXiv:2601.13549).
 **Link:** https://arxiv.org/abs/2601.13549
@@ -617,11 +610,11 @@ notes. Rappaport is a textbook citation, outside the count.
 
 **Their stated future work — verbatim, two items:** (1) Extension to a scenario requiring SCA and S-Procedure techniques — *"the detailed derivations, however, are mathematically intricate and thus are left for future work."* (2) Broader extensions named in the conclusion: XL-IRS-aided systems, space-air-ground integrated networks, and beam tracking for ISAC.
 
-**Vs. our work:** The single most direct non-RL competitor in the entire 35-paper set — same exact problem (secrecy under Eve location uncertainty), entirely different mechanism (closed-form geometric/LMI robust optimization vs. our worst-case-sampled RL). Their headline finding (angular-error amplification — uncertainty effects are geometry-dependent, not uniform) is a genuine, sophisticated critique applicable to our own design: our ρ = σ/D_max is a single global scalar, identical regardless of where Eve actually sits relative to the APs. Worth naming explicitly as a limitation/future-work item: UA-SAC's uncertainty signal is currently geometry-blind, and Zhou et al.'s result suggests it shouldn't be.
+**Vs. our work:** The single most direct non-RL competitor in the entire 30-paper set — same exact problem (secrecy under Eve location uncertainty), entirely different mechanism (closed-form geometric/LMI robust optimization vs. our worst-case-sampled RL). Their headline finding (angular-error amplification — uncertainty effects are geometry-dependent, not uniform) is a genuine, sophisticated critique applicable to our own design: our ρ = σ/D_max is a single global scalar, identical regardless of where Eve actually sits relative to the APs. Worth naming explicitly as a limitation/future-work item: UA-SAC's uncertainty signal is currently geometry-blind, and Zhou et al.'s result suggests it shouldn't be.
 
 **Why it's in our lit review:** Does the most work of any single citation on the "here's exactly who else solves our problem, and here's what they teach us about our own blind spot" front. The angular-error amplification finding is worth a dedicated sentence in Discussion/Future Work, not just a passing citation.
 
-## 31. Xiao, Hu, Li, Wang & Yang, 2025 — Robust Full-Space Physical Layer Security for STAR-RIS-Aided Wireless Networks: Eavesdropper with Uncertain Location and Channel
+## 27. Xiao, Hu, Li, Wang & Yang, 2025 — Robust Full-Space Physical Layer Security for STAR-RIS-Aided Wireless Networks: Eavesdropper with Uncertain Location and Channel
 
 **Citation:** H. Xiao, X. Hu, A. Li, W. Wang, and K. Yang, "Robust Full-Space Physical Layer Security for STAR-RIS-Aided Wireless Networks: Eavesdropper With Uncertain Location and Channel," *IEEE Trans. Wireless Commun.*, vol. 24, pp. 7206–7220, 2025 (arXiv:2503.12233).
 **Link:** https://arxiv.org/abs/2503.12233
@@ -641,7 +634,7 @@ notes. Rappaport is a textbook citation, outside the count.
 
 **Why it's in our lit review:** Second-strongest direct competitor after Zhou et al. — same "no location point-estimate" philosophy, different mechanism, different regime (large-system asymptotics vs. small-network RL). Together with Zhou et al., these two give the Related Work section genuine, current, non-RL competitors to differentiate against, not just older RL/beamforming papers.
 
-## 32. Niu, Xiao, Lei, Chen, Xiao & Yuen, 2025 — A Survey on Artificial Noise for Physical Layer Security: Opportunities, Technologies, Guidelines, Advances, and Trends
+## 28. Niu, Xiao, Lei, Chen, Xiao & Yuen, 2025 — A Survey on Artificial Noise for Physical Layer Security: Opportunities, Technologies, Guidelines, Advances, and Trends
 
 **Citation:** H. Niu, Y. Xiao, X. Lei, J. Chen, Z. Xiao, M. Li, and C. Yuen, "A Survey on Artificial Noise for Physical Layer Security: Opportunities, Technologies, Guidelines, Advances, and Trends," arXiv:2507.06500, 2025.
 **Link:** https://arxiv.org/abs/2507.06500
@@ -661,7 +654,7 @@ notes. Rappaport is a textbook citation, outside the count.
 
 **Why it's in our lit review:** Best available "state of the field" citation for the AN/friendly-interference literature specifically, current (2025) and comprehensive, with a future-work agenda that our own low-inference-cost RL approach directly and favorably contrasts against.
 
-## 33. Bui Minh Tuan, Nguyen, D. N. Nguyen, Trung, Huynh, Hoang, Krunz & Dutkiewicz, 2026 — Deep Learning-Driven Friendly Jamming for Secure Multicarrier ISAC Under Channel Uncertainty
+## 29. Bui Minh Tuan, Nguyen, D. N. Nguyen, Trung, Huynh, Hoang, Krunz & Dutkiewicz, 2026 — Deep Learning-Driven Friendly Jamming for Secure Multicarrier ISAC Under Channel Uncertainty
 
 **Citation:** B. M. Tuan, V.-D. Nguyen, D. N. Nguyen, N. L. Trung, N. V. Huynh, D. T. Hoang, M. Krunz, and E. Dutkiewicz, "Deep Learning-Driven Friendly Jamming for Secure Multicarrier ISAC Under Channel Uncertainty," arXiv:2603.05062, Mar. 2026.
 **Link:** https://arxiv.org/abs/2603.05062
@@ -677,11 +670,11 @@ notes. Rappaport is a textbook citation, outside the count.
 
 **Their stated future work:** The paper's own table of contents promises the conclusion "concludes with future research directions," but the actual conclusion (verified by rendering the page directly, since two-column extraction scrambled it) only restates results — significant secrecy-rate improvement, reduced block error rate, robustness to CSI/angular errors — with no new specific forward-looking items listed. Worth noting honestly: the promised future-work content isn't really there in a checkable form.
 
-**Vs. our work — the real, precise distinction:** This is the closest sibling paper in the entire 37-paper set — deep-learning-driven friendly jamming, unknown Eve location, channel uncertainty, same general period as our own Phase 2 work. But the mechanism for handling "we don't know where Eve is" is fundamentally different and worth stating precisely: **they resolve the uncertainty by exploiting an extra sensing modality that ISAC systems have and ordinary communication systems don't** — radar echoes physically probing the environment. UA-SAC has no such sensing capability available (a standard Wi-Fi AP only communicates, it doesn't sense), so it resolves the same uncertainty the opposite way: by being robust to never resolving it at all, via worst-case sampling over a noise model rather than actively narrowing down where Eve is. That's a real, defensible architectural difference to state explicitly: "unlike ISAC-based approaches that exploit radar sensing to localize threats, UA-SAC assumes no sensing modality exists and instead learns a policy robust to complete positional ignorance — applicable to conventional communication-only infrastructure like Wi-Fi APs, where no such radar echo is available."
+**Vs. our work — the real, precise distinction:** This is the closest sibling paper in the entire 30-paper set — deep-learning-driven friendly jamming, unknown Eve location, channel uncertainty, same general period as our own Phase 2 work. But the mechanism for handling "we don't know where Eve is" is fundamentally different and worth stating precisely: **they resolve the uncertainty by exploiting an extra sensing modality that ISAC systems have and ordinary communication systems don't** — radar echoes physically probing the environment. UA-SAC has no such sensing capability available (a standard Wi-Fi AP only communicates, it doesn't sense), so it resolves the same uncertainty the opposite way: by being robust to never resolving it at all, via worst-case sampling over a noise model rather than actively narrowing down where Eve is. That's a real, defensible architectural difference to state explicitly: "unlike ISAC-based approaches that exploit radar sensing to localize threats, UA-SAC assumes no sensing modality exists and instead learns a policy robust to complete positional ignorance — applicable to conventional communication-only infrastructure like Wi-Fi APs, where no such radar echo is available."
 
 **Why it's in our lit review:** The single strongest "this exact problem is still an active, current research direction" citation in the whole set (March 2026 — as current as anything we have) — and its ISAC/radar-sensing solution mechanism gives us the sharpest possible contrast for explaining why UA-SAC's "robust without sensing" approach is a distinct, complementary path rather than a redundant one.
 
-## 34. Abughalwa, D. N. Nguyen, Hoang, Vu & Chatzinotas, 2025 — Secure Communications for All Users in Low-Resolution IRS-Aided Systems Under Imperfect and Unknown CSI
+## 30. Abughalwa, D. N. Nguyen, Hoang, Vu & Chatzinotas, 2025 — Secure Communications for All Users in Low-Resolution IRS-Aided Systems Under Imperfect and Unknown CSI
 
 **Citation:** M. Abughalwa, D. N. Nguyen, D. T. Hoang, T. X. Vu, E. Dutkiewicz, and S. Chatzinotas, "Secure Communications for All Users in Low-Resolution IRS-Aided Systems Under Imperfect and Unknown CSI," arXiv:2504.05048, Apr. 2025 (v3 Aug. 2025).
 **Link:** https://arxiv.org/abs/2504.05048
