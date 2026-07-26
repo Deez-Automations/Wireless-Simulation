@@ -77,27 +77,41 @@ def eval_normal_wifi(n=N_EPISODES):
     return np.array(secs)
 
 
-def eval_fixed_cfj(n=N_EPISODES):
+def eval_single_best_ap(n=N_EPISODES):
     """
-    Fixed Cooperative Jamming: all APs transmit at uniform max power.
-    Same cooperative jamming framework as RL agents but with no learned
-    power optimization — represents the system without RL contribution.
+    Single Best AP: only each user's serving AP transmits (at max power);
+    every other AP is fully off — no jamming, no incidental interference.
+    Represents the floor with no cooperative-jamming mechanism at all,
+    distinct from Normal Wi-Fi (where every AP is on and contributes
+    interference/jamming whether intended or not).
+
+    Association is decided under a neutral full-power reference (same
+    fairness rule used everywhere else), then only those APs are switched
+    on. Deliberately bypasses evaluate_policy()'s own association
+    recompute here: recomputing association from a vector that already
+    has hard zeros in it risks a degenerate case where a zeroed-out AP
+    looks "best" whenever the true serving AP's secrecy is <= 0.
     """
     env  = WirelessJammingEnv(csi_noise_std=0.0)
     secs = []
     for ep in range(n):
         env.reset(seed=ep)
-        powers = np.full(env.num_aps, env.max_power, dtype=np.float32)
-        secs.append(env.evaluate_policy(powers)["sum_secrecy_capacity"])
+        uniform = np.full(env.num_aps, env.max_power, dtype=np.float32)
+        assoc   = env._associate_users(uniform)
+        powers  = np.zeros(env.num_aps, dtype=np.float32)
+        powers[assoc] = env.max_power
+        env.assoc = assoc
+        sum_sec = sum(env._secrecy_capacity(k, powers) for k in range(env.num_users))
+        secs.append(sum_sec)
     return np.array(secs)
 
 
 # Pre-compute non-RL baselines once (they don't depend on σ)
 print("\nPre-computing non-RL baselines...")
 base_normal = eval_normal_wifi()
-base_fixed  = eval_fixed_cfj()
+base_single = eval_single_best_ap()
 print(f"  Normal Wi-Fi mean:      {base_normal.mean():.4f}")
-print(f"  Fixed CFJ mean:         {base_fixed.mean():.4f}")
+print(f"  Single Best AP mean:    {base_single.mean():.4f}")
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -112,13 +126,13 @@ print("\nPlot 1: 4-system comparison bar chart at σ=10m")
 sac_10 = eval_rl(model_uasac,    10.0, is_uasac=True)
 bsl_10 = eval_rl(model_baseline, 10.0, is_uasac=False)
 
-systems = ["Fixed Max Power\n(no RL)",
+systems = ["Normal Wi-Fi\n(no RL)", "Single Best AP\n(no jamming)",
            "Baseline SAC\n(perfect CSI)", "UA-SAC\n(ours)"]
-means   = [base_normal.mean(), bsl_10.mean(), sac_10.mean()]
-colors  = [COLOR_NORMAL, COLOR_BASELINE, COLOR_UASAC]
+means   = [base_normal.mean(), base_single.mean(), bsl_10.mean(), sac_10.mean()]
+colors  = [COLOR_NORMAL, COLOR_SMART, COLOR_BASELINE, COLOR_UASAC]
 
 sec_ratios = []
-for data in [base_normal, bsl_10, sac_10]:
+for data in [base_normal, base_single, bsl_10, sac_10]:
     ratio = np.mean([s > 0 for s in data]) * 100
     sec_ratios.append(ratio)
 
@@ -149,9 +163,9 @@ ax2.set_ylim(0, 115)
 plt.suptitle("Performance Comparison — 4 APs, 2 Users, 1 Eve  (σ = 10m)",
              fontsize=12, fontweight="bold")
 
-caption = ("Fig. 1: Three-system comparison at maximum Eve location uncertainty (σ=10m). "
-           "Fixed Max Power is the non-RL baseline (all APs at 1W, no optimization). "
-           "UA-SAC (ours) exceeds the perfect-CSI SAC baseline despite "
+caption = ("Fig. 1: Four-system comparison at maximum Eve location uncertainty (σ=10m). "
+           "Normal Wi-Fi and Single Best AP are non-RL baselines (no power optimization, "
+           "no cooperative jamming). UA-SAC (ours) exceeds the perfect-CSI SAC baseline despite "
            "having no knowledge of Eve's true location.")
 fig.text(0.5, -0.04, caption, ha="center", fontsize=8.5,
          style="italic", wrap=True,
@@ -184,7 +198,7 @@ for s in sigma_fine:
     print(f"  σ={s:2d}m  UA-SAC={ua.mean():.4f}  Baseline={base.mean():.4f}")
 
 mean_normal = [base_normal.mean()] * len(sigma_fine)
-mean_smart  = [base_fixed.mean()]  * len(sigma_fine)
+mean_single = [base_single.mean()] * len(sigma_fine)
 
 fig, ax = plt.subplots(figsize=(9, 5.5))
 ax.plot(sigma_fine, mean_ua,     color=COLOR_UASAC,    marker="o", ms=6,
@@ -192,9 +206,9 @@ ax.plot(sigma_fine, mean_ua,     color=COLOR_UASAC,    marker="o", ms=6,
 ax.plot(sigma_fine, mean_base,   color=COLOR_BASELINE, marker="s", ms=6,
         linewidth=2.0, linestyle="--",
         label="Baseline SAC (perfect CSI training)")
-ax.plot(sigma_fine, mean_smart,  color=COLOR_SMART,    marker="^", ms=5,
+ax.plot(sigma_fine, mean_single, color=COLOR_SMART,    marker="^", ms=5,
         linewidth=1.5, linestyle="-.",
-        label="Fixed CFJ (no RL)")
+        label="Single Best AP (no jamming)")
 ax.plot(sigma_fine, mean_normal, color=COLOR_NORMAL,   marker="v", ms=5,
         linewidth=1.5, linestyle=":",
         label="Normal Wi-Fi (no PLS)")

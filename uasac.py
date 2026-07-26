@@ -56,9 +56,9 @@ class UASAC(SAC):
                 batch_size, env=self._vec_normalize_env
             )
 
-            # ── Extract mean ρ from batch observations (last element) ──
-            rho_mean = replay_data.observations[:, -1].mean().detach()
-            self._rho_hist.append(float(rho_mean.item()))
+            # ── Per-sample ρ from batch observations (last element) ────
+            rho_batch = replay_data.observations[:, -1].detach().reshape(-1, 1)
+            self._rho_hist.append(float(rho_batch.mean().item()))
 
             # ── Base entropy coefficient (auto-tuned scalar) ───────────
             if self.ent_coef == "auto":
@@ -66,13 +66,18 @@ class UASAC(SAC):
             else:
                 alpha_base = self.ent_coef_tensor
 
-            # ── Effective entropy = base × (1 + β·ρ) ──────────────────
-            alpha_eff = alpha_base * (1.0 + self.beta * rho_mean)
+            # ── Effective entropy = base × (1 + β·ρ), per sample ───────
+            # Each transition is scaled by its OWN stored ρ, not a
+            # batch-average — so entropy scaling actually tracks each
+            # transition's own uncertainty level rather than one shared
+            # scalar for the whole batch.
+            alpha_eff = alpha_base * (1.0 + self.beta * rho_batch)
 
-            # Log both for Plot 4
+            # Log both for Plot 4 (batch mean, for a single scalar curve)
+            alpha_eff_mean = alpha_eff.mean()
             self._alpha_base_hist.append(float(alpha_base.item()))
-            self._alpha_eff_hist.append(float(alpha_eff.item()))
-            ent_coefs.append(float(alpha_eff.item()))
+            self._alpha_eff_hist.append(float(alpha_eff_mean.item()))
+            ent_coefs.append(float(alpha_eff_mean.item()))
 
             # ── Update base entropy coefficient (standard SAC dual obj) ─
             if self.ent_coef == "auto":

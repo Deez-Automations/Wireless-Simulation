@@ -153,20 +153,20 @@ class WirelessJammingEnv(gym.Env):
         return total
 
     # ------------------------------------------------------------------ #
-    # AP–user association
+    # AP–user association (power-aware: re-evaluated against whatever
+    # powers are actually scored, not a fixed uniform-max-power guess)
     # ------------------------------------------------------------------ #
 
-    def _associate_users(self) -> np.ndarray:
-        uniform_powers = np.full(self.num_aps, self.max_power, dtype=np.float32)
+    def _associate_users(self, powers: np.ndarray) -> np.ndarray:
         assoc = np.zeros(self.num_users, dtype=int)
 
         for k in range(self.num_users):
             best_ap  = 0
             best_sec = -np.inf
             for n in range(self.num_aps):
-                user_cap = self._capacity(self.user_locs[k], n, uniform_powers)
+                user_cap = self._capacity(self.user_locs[k], n, powers)
                 eve_cap  = max(
-                    self._capacity(self.eve_locs[j], n, uniform_powers)
+                    self._capacity(self.eve_locs[j], n, powers)
                     for j in range(self.num_eves)
                 )
                 sec = user_cap - eve_cap
@@ -221,8 +221,6 @@ class WirelessJammingEnv(gym.Env):
             self.current_sigma = self.csi_noise_std
             self.rho           = self.csi_noise_std / self.map_size
 
-        self.assoc = self._associate_users()
-
         return self._build_obs(), {}
 
     # ------------------------------------------------------------------ #
@@ -231,6 +229,7 @@ class WirelessJammingEnv(gym.Env):
 
     def step(self, action: np.ndarray):
         powers = np.clip(action, 0.0, self.max_power).astype(np.float32)
+        self.assoc = self._associate_users(powers)
 
         if self.M > 1 and self.current_sigma > 0.0:
             secrecies = []
@@ -266,6 +265,7 @@ class WirelessJammingEnv(gym.Env):
 
     def evaluate_policy(self, powers: np.ndarray) -> dict:
         powers = np.clip(powers, 0.0, self.max_power)
+        self.assoc = self._associate_users(powers)
 
         per_user_secrecy = [
             self._secrecy_capacity(k, powers) for k in range(self.num_users)
