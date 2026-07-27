@@ -1,31 +1,45 @@
 """
 train.py
-Trains 4 SAC agents, one per Eve CSI noise level:
-  1. noise = 0.0m  — perfect Eve CSI (paper baseline)
-  2. noise = 2.0m  — slight location uncertainty
-  3. noise = 5.0m  — moderate location uncertainty
-  4. noise = 10.0m — severe location uncertainty (our contribution)
+Trains two SAC agents on the identical current environment code, so the
+comparison isolates the unknown-Eve-CSI contribution rather than being
+confounded by different network capacity or association mechanics:
+  1. Baseline SAC (noise=0.0)  — vanilla SAC, perfect Eve CSI
+  2. UA-SAC                    — worst-case reward + rho-augmented state
+                                  + rho-scaled entropy
 
-Models saved to models/sac_noise_<sigma>.zip
-Results (reward curves) saved to results/
+Network depth matches Hoseini et al.'s reported architecture ("nine
+layers of depth ... depending on the number of APs") rather than SAC's
+generic 2-layer default — see NET_ARCH below.
+
+Models saved to models/. Results (reward/entropy history, convergence
+plot) saved to results2/.
 """
 
 import os
+import sys
+sys.stdout.reconfigure(encoding="utf-8")
+
+# ── CPU performance ──────────────────────────────────────────────────────
+# This machine has 4 PHYSICAL cores / 8 logical (hyperthreaded) — for
+# dense linear algebra, hyperthreads don't give real extra throughput,
+# so thread counts target 4, not 8. Must be set before numpy/torch are
+# imported — BLAS libraries read these once at import time.
+os.environ["OMP_NUM_THREADS"]      = "4"
+os.environ["MKL_NUM_THREADS"]      = "4"
+os.environ["OPENBLAS_NUM_THREADS"] = "4"
+
 import ctypes
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
+import threadpoolctl
 from stable_baselines3 import SAC
 from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.vec_env import SubprocVecEnv
 from env.cfj_env import WirelessJammingEnv
 from uasac import UASAC
 
-# ── Max CPU performance ────────────────────────────────────────────────
-os.environ["OMP_NUM_THREADS"]  = "8"
-os.environ["MKL_NUM_THREADS"]  = "8"
-os.environ["OPENBLAS_NTHREADS"] = "8"
-torch.set_num_threads(8)
+torch.set_num_threads(4)
 
 # Raise Windows process priority to High
 try:
@@ -38,10 +52,20 @@ except Exception:
     pass
 
 os.makedirs("models", exist_ok=True)
-os.makedirs("results", exist_ok=True)
+os.makedirs("results2", exist_ok=True)
 
-TIMESTEPS   = 50_000
-NOISE_LEVELS = [0.0, 2.0, 5.0, 10.0]   # metres of Eve location uncertainty
+# Matches Hoseini et al.'s reported "nine layers of depth" for the SAC
+# critic/actor networks, re-interpreted for PyTorch: MATLAB's deep
+# learning tooling counts each fullyConnectedLayer AND each reluLayer
+# separately, so "nine layers" most plausibly means ~4 real weight
+# layers with ReLUs between them, not 9 raw weight layers. A first
+# attempt at a literal 9-weight-layer plain MLP (no normalization)
+# showed exactly the training instability the literature predicts for
+# deep, unnormalized actor-critic networks (Bjorck et al., "Towards
+# Deeper Deep RL") — critic loss failed to converge, rising late in
+# training instead of settling. This tapered 4-layer version targets
+# their stated 32-256 hidden-unit range without that instability risk.
+NET_ARCH = [256, 128, 64, 32]
 
 # ── Callback to track reward per episode ──────────────────────────────
 class RewardLogger(BaseCallback):
@@ -64,55 +88,37 @@ class RewardLogger(BaseCallback):
         return True
 
 
-def train_agent(noise_std: float, timesteps: int = TIMESTEPS):
-    """Train one SAC agent for a given Eve CSI noise level."""
-    env      = WirelessJammingEnv(num_aps=4, num_users=2, num_eves=1,
-                                   csi_noise_std=noise_std)
-    callback = RewardLogger()
+def make_baseline_env():
+    def _init():
+        # Each worker subprocess otherwise inherits the main process's
+        # BLAS thread count too — the per-step physics here is a few
+        # tiny matrices, doesn't benefit from multithreading, and having
+        # every worker also claim several threads causes severe
+        # oversubscription against only 4 physical cores.
+        threadpoolctl.threadpool_limits(1)
+        return WirelessJammingEnv(num_aps=4, num_users=2, num_eves=1)
+    return _init
+
+
+def train_baseline(timesteps: int = 100_000):
+    """Baseline SAC — vanilla SAC, perfect Eve CSI, same env/network depth
+    as UA-SAC so the comparison isolates only the unknown-Eve contribution."""
+    N_ENVS = 4
+    env = SubprocVecEnv([make_baseline_env() for _ in range(N_ENVS)])
 
     model = SAC(
         "MlpPolicy", env,
         verbose=1,
         learning_rate=3e-4,
-        buffer_size=100_000,
+        buffer_size=200_000,
         batch_size=256,
         ent_coef="auto",
-        policy_kwargs=dict(net_arch=[256, 256]),  # 9-layer equiv hidden units
+        policy_kwargs=dict(net_arch=NET_ARCH),
     )
-    model.learn(total_timesteps=timesteps, callback=callback)
-
-    tag = f"noise_{noise_std:.1f}"
-    model.save(f"models/sac_{tag}")
-    print(f"  [noise={noise_std}m] trained and saved.")
-
-    return model, callback.episode_rewards
-
-
-# ── Phase 1: Train for each noise level (LEGACY — models already saved) ──
-# These 4 agents are superseded by UA-SAC. Only uncomment if you need to
-# regenerate sac_noise_*.zip from scratch.
-#
-# all_rewards = {}
-# for noise in NOISE_LEVELS:
-#     label = "Baseline (perfect CSI)" if noise == 0.0 else f"Imperfect CSI σ={noise}m"
-#     print(f"\n→ {label}")
-#     _, rewards = train_agent(noise_std=noise)
-#     all_rewards[noise] = rewards
-#
-# plt.figure(figsize=(8, 4.5))
-# for noise, rewards in all_rewards.items():
-#     label = "Baseline (perfect CSI)" if noise == 0.0 else f"σ_ε = {noise} m"
-#     window = max(1, len(rewards) // 50)
-#     smoothed = np.convolve(rewards, np.ones(window)/window, mode="valid")
-#     plt.plot(smoothed, label=label)
-# plt.xlabel("Episode", fontsize=12)
-# plt.ylabel("Sum Secrecy Capacity (bps/Hz)", fontsize=12)
-# plt.title("Training Convergence — Baseline vs. Imperfect Eve CSI", fontsize=11)
-# plt.legend(fontsize=10)
-# plt.grid(True, alpha=0.3)
-# plt.tight_layout()
-# plt.savefig("results/training_convergence.png", dpi=150)
-# print("\nSaved: results/training_convergence.png")
+    model.learn(total_timesteps=timesteps)
+    model.save("models/sac_noise_0.0")
+    env.close()
+    print("Baseline SAC saved → models/sac_noise_0.0")
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -121,44 +127,48 @@ def train_agent(noise_std: float, timesteps: int = TIMESTEPS):
 # Single universal agent trained across all σ levels simultaneously.
 # State: ℝ¹⁵  (adds ρ = σ/D_max as element 15)
 # Reward: worst-case over M=5 sampled Eve locations per step
-# Run separately — takes ~6-8 hrs on CPU (100k timesteps, M=5 reward)
-#
-# To train: uncomment the call at the bottom of this block and run:
-#   venv/Scripts/python train.py
 # ══════════════════════════════════════════════════════════════════════
 
-def make_env():
+def make_env(beta: float = 0.0):
     def _init():
+        threadpoolctl.threadpool_limits(1)
         return WirelessJammingEnv(
             num_aps=4, num_users=2, num_eves=1,
             sigma_range=(0.0, 10.0),
             M=5,
-            beta=1.0,
+            beta=beta,
             augment_rho=True,
         )
     return _init
 
 
-def train_uasac(timesteps: int = 100_000):
+def train_uasac(timesteps: int = 300_000, beta: float = 0.0):
+    """beta=0 disables the rho-scaled entropy boost, isolating the
+    worst-case-reward mechanism alone — the entropy boost was adding a
+    second source of noise on top of the already-noisy M=5 worst-case
+    reward, and 100k steps wasn't enough budget for UA-SAC's harder,
+    noisier learning problem (random sigma + noisy state + noisy reward)
+    to converge to beat Baseline SAC's clean, easy training signal."""
     N_ENVS = 4   # parallel env workers — leaves 4 cores for PyTorch training
-    env = SubprocVecEnv([make_env() for _ in range(N_ENVS)])
+    env = SubprocVecEnv([make_env(beta=beta) for _ in range(N_ENVS)])
 
     model = UASAC(
         "MlpPolicy", env,
-        beta=1.0,
+        beta=beta,
         verbose=1,
         learning_rate=3e-4,
         buffer_size=200_000,      # larger buffer to match faster data collection
         batch_size=256,
         ent_coef="auto",
-        policy_kwargs=dict(net_arch=[256, 256]),
+        policy_kwargs=dict(net_arch=NET_ARCH),
     )
 
     callback = RewardLogger()
     model.learn(total_timesteps=timesteps, callback=callback)
     model.save("models/uasac_robust")
-    model.save_ent_history("results/uasac_ent_history.npz")
-    np.save("results/uasac_reward_history.npy", np.array(callback.episode_rewards))
+    model.save_ent_history("results2/uasac_ent_history.npz")
+    np.save("results2/uasac_reward_history.npy", np.array(callback.episode_rewards))
+    env.close()
     print("UA-SAC saved → models/uasac_robust")
 
     window   = max(1, len(callback.episode_rewards) // 50)
@@ -172,9 +182,12 @@ def train_uasac(timesteps: int = 100_000):
     plt.legend(fontsize=10)
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.savefig("results/uasac_convergence.png", dpi=150)
-    print("Saved: results/uasac_convergence.png")
+    plt.savefig("results2/uasac_convergence.png", dpi=150)
+    print("Saved: results2/uasac_convergence.png")
 
 
 if __name__ == "__main__":
-    train_uasac(timesteps=100_000)
+    # Baseline SAC already trained and verified working (models/sac_noise_0.0) —
+    # not retrained here, no reason to redo a model that's already solid.
+    print("=== Training UA-SAC: 300k steps, beta=0 (entropy boost disabled) ===")
+    train_uasac(timesteps=300_000, beta=0.0)

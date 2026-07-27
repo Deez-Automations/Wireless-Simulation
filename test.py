@@ -15,6 +15,8 @@ Plot 5 — Training Convergence:        UA-SAC reward curve
 """
 
 import os
+import sys
+sys.stdout.reconfigure(encoding="utf-8")
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
@@ -22,8 +24,8 @@ import matplotlib.pyplot as plt
 from stable_baselines3 import SAC
 from env.cfj_env import WirelessJammingEnv
 
-os.makedirs("results/phase2", exist_ok=True)
-OUTDIR = "results/phase2"
+os.makedirs("results2/phase2", exist_ok=True)
+OUTDIR = "results2/phase2"
 
 MAP_SIZE   = 50.0
 N_EPISODES = 1000
@@ -67,13 +69,20 @@ def eval_rl(model, sigma_eval, n=N_EPISODES, is_uasac=False):
 
 
 def eval_normal_wifi(n=N_EPISODES):
-    """All APs transmit at max power — no PLS, no RL."""
+    """
+    Normal Wi-Fi: all APs transmit at max power, association is by
+    highest SINR only — ignores Eve entirely. Matches Hoseini et al.'s
+    "Normal Wi-Fi" baseline exactly (association by strongest signal,
+    not secrecy capacity, unlike every other system evaluated here).
+    """
     env  = WirelessJammingEnv(csi_noise_std=0.0)
     secs = []
     for ep in range(n):
         env.reset(seed=ep)
         powers = np.full(env.num_aps, env.max_power, dtype=np.float32)
-        secs.append(env.evaluate_policy(powers)["sum_secrecy_capacity"])
+        env.assoc = env._associate_sinr_only(powers)
+        sum_sec = sum(env._secrecy_capacity(k, powers) for k in range(env.num_users))
+        secs.append(sum_sec)
     return np.array(secs)
 
 
@@ -307,7 +316,7 @@ print(f"  Saved: {OUTDIR}/plot3_robustness.png")
 # ══════════════════════════════════════════════════════════════════════
 print("\nPlot 4: Entropy coefficient history")
 
-HIST_PATH = "results/uasac_ent_history.npz"
+HIST_PATH = "results2/uasac_ent_history.npz"
 if os.path.exists(HIST_PATH):
     hist       = np.load(HIST_PATH)
     alpha_base = hist["alpha_base"]
@@ -363,7 +372,7 @@ else:
 # ══════════════════════════════════════════════════════════════════════
 print("\nPlot 5: Training convergence")
 
-CONV_PATH = "results/uasac_convergence.png"
+CONV_PATH = "results2/uasac_convergence.png"
 CONV_DEST = f"{OUTDIR}/plot5_convergence.png"
 if os.path.exists(CONV_PATH):
     import shutil

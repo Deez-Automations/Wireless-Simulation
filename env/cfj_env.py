@@ -178,6 +178,25 @@ class WirelessJammingEnv(gym.Env):
         return assoc
 
     # ------------------------------------------------------------------ #
+    # SINR-only association ("Normal Wi-Fi" baseline, Hoseini et al.) —
+    # picks the AP with the highest received signal, ignoring Eve
+    # entirely. Distinct from _associate_users(), which is secrecy-aware.
+    # ------------------------------------------------------------------ #
+
+    def _associate_sinr_only(self, powers: np.ndarray) -> np.ndarray:
+        assoc = np.zeros(self.num_users, dtype=int)
+        for k in range(self.num_users):
+            best_ap  = 0
+            best_cap = -np.inf
+            for n in range(self.num_aps):
+                cap = self._capacity(self.user_locs[k], n, powers)
+                if cap > best_cap:
+                    best_cap = cap
+                    best_ap  = n
+            assoc[k] = best_ap
+        return assoc
+
+    # ------------------------------------------------------------------ #
     # Build observation vector
     # ------------------------------------------------------------------ #
 
