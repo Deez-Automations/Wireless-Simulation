@@ -15,6 +15,8 @@ Plot 5 — Training Convergence:        UA-SAC reward curve
 """
 
 import os
+import sys
+sys.stdout.reconfigure(encoding="utf-8")
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
@@ -22,8 +24,8 @@ import matplotlib.pyplot as plt
 from stable_baselines3 import SAC
 from env.cfj_env import WirelessJammingEnv
 
-os.makedirs("results/phase2", exist_ok=True)
-OUTDIR = "results/phase2"
+os.makedirs("results2/phase2", exist_ok=True)
+OUTDIR = "results2/phase2"
 
 MAP_SIZE   = 50.0
 N_EPISODES = 1000
@@ -67,37 +69,58 @@ def eval_rl(model, sigma_eval, n=N_EPISODES, is_uasac=False):
 
 
 def eval_normal_wifi(n=N_EPISODES):
-    """All APs transmit at max power — no PLS, no RL."""
+    """
+    Normal Wi-Fi: all APs transmit at max power, association is by
+    highest SINR only — ignores Eve entirely. Matches Hoseini et al.'s
+    "Normal Wi-Fi" baseline exactly (association by strongest signal,
+    not secrecy capacity, unlike every other system evaluated here).
+    """
     env  = WirelessJammingEnv(csi_noise_std=0.0)
     secs = []
     for ep in range(n):
         env.reset(seed=ep)
         powers = np.full(env.num_aps, env.max_power, dtype=np.float32)
-        secs.append(env.evaluate_policy(powers)["sum_secrecy_capacity"])
+        env.assoc = env._associate_sinr_only(powers)
+        sum_sec = sum(env._secrecy_capacity(k, powers) for k in range(env.num_users))
+        secs.append(sum_sec)
     return np.array(secs)
 
 
-def eval_fixed_cfj(n=N_EPISODES):
+def eval_single_best_ap(n=N_EPISODES):
     """
-    Fixed Cooperative Jamming: all APs transmit at uniform max power.
-    Same cooperative jamming framework as RL agents but with no learned
-    power optimization — represents the system without RL contribution.
+    Single Best AP: only each user's serving AP transmits (at max power);
+    every other AP is fully off — no jamming, no incidental interference.
+    Represents the floor with no cooperative-jamming mechanism at all,
+    distinct from Normal Wi-Fi (where every AP is on and contributes
+    interference/jamming whether intended or not).
+
+    Association is decided under a neutral full-power reference (same
+    fairness rule used everywhere else), then only those APs are switched
+    on. Deliberately bypasses evaluate_policy()'s own association
+    recompute here: recomputing association from a vector that already
+    has hard zeros in it risks a degenerate case where a zeroed-out AP
+    looks "best" whenever the true serving AP's secrecy is <= 0.
     """
     env  = WirelessJammingEnv(csi_noise_std=0.0)
     secs = []
     for ep in range(n):
         env.reset(seed=ep)
-        powers = np.full(env.num_aps, env.max_power, dtype=np.float32)
-        secs.append(env.evaluate_policy(powers)["sum_secrecy_capacity"])
+        uniform = np.full(env.num_aps, env.max_power, dtype=np.float32)
+        assoc   = env._associate_users(uniform)
+        powers  = np.zeros(env.num_aps, dtype=np.float32)
+        powers[assoc] = env.max_power
+        env.assoc = assoc
+        sum_sec = sum(env._secrecy_capacity(k, powers) for k in range(env.num_users))
+        secs.append(sum_sec)
     return np.array(secs)
 
 
 # Pre-compute non-RL baselines once (they don't depend on σ)
 print("\nPre-computing non-RL baselines...")
 base_normal = eval_normal_wifi()
-base_fixed  = eval_fixed_cfj()
+base_single = eval_single_best_ap()
 print(f"  Normal Wi-Fi mean:      {base_normal.mean():.4f}")
-print(f"  Fixed CFJ mean:         {base_fixed.mean():.4f}")
+print(f"  Single Best AP mean:    {base_single.mean():.4f}")
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -112,13 +135,13 @@ print("\nPlot 1: 4-system comparison bar chart at σ=10m")
 sac_10 = eval_rl(model_uasac,    10.0, is_uasac=True)
 bsl_10 = eval_rl(model_baseline, 10.0, is_uasac=False)
 
-systems = ["Fixed Max Power\n(no RL)",
+systems = ["Normal Wi-Fi\n(no RL)", "Single Best AP\n(no jamming)",
            "Baseline SAC\n(perfect CSI)", "UA-SAC\n(ours)"]
-means   = [base_normal.mean(), bsl_10.mean(), sac_10.mean()]
-colors  = [COLOR_NORMAL, COLOR_BASELINE, COLOR_UASAC]
+means   = [base_normal.mean(), base_single.mean(), bsl_10.mean(), sac_10.mean()]
+colors  = [COLOR_NORMAL, COLOR_SMART, COLOR_BASELINE, COLOR_UASAC]
 
 sec_ratios = []
-for data in [base_normal, bsl_10, sac_10]:
+for data in [base_normal, base_single, bsl_10, sac_10]:
     ratio = np.mean([s > 0 for s in data]) * 100
     sec_ratios.append(ratio)
 
@@ -149,9 +172,9 @@ ax2.set_ylim(0, 115)
 plt.suptitle("Performance Comparison — 4 APs, 2 Users, 1 Eve  (σ = 10m)",
              fontsize=12, fontweight="bold")
 
-caption = ("Fig. 1: Three-system comparison at maximum Eve location uncertainty (σ=10m). "
-           "Fixed Max Power is the non-RL baseline (all APs at 1W, no optimization). "
-           "UA-SAC (ours) exceeds the perfect-CSI SAC baseline despite "
+caption = ("Fig. 1: Four-system comparison at maximum Eve location uncertainty (σ=10m). "
+           "Normal Wi-Fi and Single Best AP are non-RL baselines (no power optimization, "
+           "no cooperative jamming). UA-SAC (ours) exceeds the perfect-CSI SAC baseline despite "
            "having no knowledge of Eve's true location.")
 fig.text(0.5, -0.04, caption, ha="center", fontsize=8.5,
          style="italic", wrap=True,
@@ -184,7 +207,7 @@ for s in sigma_fine:
     print(f"  σ={s:2d}m  UA-SAC={ua.mean():.4f}  Baseline={base.mean():.4f}")
 
 mean_normal = [base_normal.mean()] * len(sigma_fine)
-mean_smart  = [base_fixed.mean()]  * len(sigma_fine)
+mean_single = [base_single.mean()] * len(sigma_fine)
 
 fig, ax = plt.subplots(figsize=(9, 5.5))
 ax.plot(sigma_fine, mean_ua,     color=COLOR_UASAC,    marker="o", ms=6,
@@ -192,9 +215,9 @@ ax.plot(sigma_fine, mean_ua,     color=COLOR_UASAC,    marker="o", ms=6,
 ax.plot(sigma_fine, mean_base,   color=COLOR_BASELINE, marker="s", ms=6,
         linewidth=2.0, linestyle="--",
         label="Baseline SAC (perfect CSI training)")
-ax.plot(sigma_fine, mean_smart,  color=COLOR_SMART,    marker="^", ms=5,
+ax.plot(sigma_fine, mean_single, color=COLOR_SMART,    marker="^", ms=5,
         linewidth=1.5, linestyle="-.",
-        label="Fixed CFJ (no RL)")
+        label="Single Best AP (no jamming)")
 ax.plot(sigma_fine, mean_normal, color=COLOR_NORMAL,   marker="v", ms=5,
         linewidth=1.5, linestyle=":",
         label="Normal Wi-Fi (no PLS)")
@@ -254,14 +277,23 @@ ax.fill_between(sigma_fine, norm_ua, norm_base,
                 alpha=0.15, color=COLOR_UASAC, label="UA-SAC robustness gain")
 ax.axhline(100, color="#999", linewidth=0.8, linestyle="--", alpha=0.5)
 
+# Labels are pushed AWAY from each other (not both toward the gap
+# between the lines) — whichever line is lower gets its label pushed
+# further down, whichever is higher gets pushed further up, so they
+# never crowd into the same space regardless of which line ends up on
+# top for a given run's results.
+ua_below_base = norm_ua[-1] < norm_base[-1]
+ua_offset   = -0.3 if ua_below_base else 0.3
+base_offset =  0.3 if ua_below_base else -0.3
+
 ax.annotate(f"−{drop_ua:.1f}%",
             xy=(10, norm_ua[-1]),
-            xytext=(8.5, norm_ua[-1] + 0.5),
+            xytext=(10.15, norm_ua[-1] + ua_offset),
             fontsize=10, color=COLOR_UASAC, fontweight="bold",
             arrowprops=dict(arrowstyle="->", color=COLOR_UASAC, lw=1.2))
 ax.annotate(f"−{drop_base:.1f}%",
             xy=(10, norm_base[-1]),
-            xytext=(8.5, norm_base[-1] - 1.5),
+            xytext=(10.15, norm_base[-1] + base_offset),
             fontsize=10, color=COLOR_BASELINE, fontweight="bold",
             arrowprops=dict(arrowstyle="->", color=COLOR_BASELINE, lw=1.2))
 
@@ -273,7 +305,7 @@ ax.legend(fontsize=10)
 ax.grid(True, alpha=0.25, linestyle="--")
 ax.set_xticks(sigma_fine)
 # zoom y-axis so the 0.5% difference looks meaningful
-ax.set_ylim(min(norm_base) - 0.3, 100.2)
+ax.set_ylim(min(min(norm_base), min(norm_ua)) - 0.6, 100.2)
 
 caption3 = ("Fig. 3: Secrecy capacity normalized to each agent's σ=0 performance (100%). "
             "Both agents start from the same reference point. UA-SAC degrades significantly "
@@ -293,7 +325,7 @@ print(f"  Saved: {OUTDIR}/plot3_robustness.png")
 # ══════════════════════════════════════════════════════════════════════
 print("\nPlot 4: Entropy coefficient history")
 
-HIST_PATH = "results/uasac_ent_history.npz"
+HIST_PATH = "results2/uasac_ent_history.npz"
 if os.path.exists(HIST_PATH):
     hist       = np.load(HIST_PATH)
     alpha_base = hist["alpha_base"]
@@ -349,7 +381,7 @@ else:
 # ══════════════════════════════════════════════════════════════════════
 print("\nPlot 5: Training convergence")
 
-CONV_PATH = "results/uasac_convergence.png"
+CONV_PATH = "results2/uasac_convergence.png"
 CONV_DEST = f"{OUTDIR}/plot5_convergence.png"
 if os.path.exists(CONV_PATH):
     import shutil
