@@ -34,6 +34,24 @@ UA-SAC exceeds the perfect-CSI baseline by **13.9%**, despite never observing Ev
 
 **Honest caveat, stated plainly rather than glossed over:** UA-SAC's advantage is in absolute secrecy capacity across the uncertainty range, not in degrading *more slowly* as uncertainty increases — on that specific normalized-degradation metric, UA-SAC and the baseline are essentially tied (97.5% vs. 97.9% retained at σ=10m). See Section IV of the report for the full, unbiased breakdown of what each result plot does and doesn't show.
 
+### Result Plots
+
+All current plots live in [`results2/phase2/`](results2/phase2/), generated from the 300k-timestep UA-SAC run (β=0) and the 100k-timestep Baseline SAC run, 1,000 shared evaluation topologies per point.
+
+**Sum secrecy capacity at σ=10m, four systems:**
+![Sum secrecy capacity comparison](results2/phase2/plot1.png)
+
+**Secrecy capacity across the full σ=0–10m sweep:**
+![Secrecy capacity vs uncertainty](results2/phase2/plot2_secrecy_vs_noise.png)
+
+**Normalized degradation (each system relative to its own σ=0 score) — see the honest caveat above before reading this one:**
+![Normalized robustness](results2/phase2/plot3_robustness.png)
+
+**UA-SAC training convergence, worst-case reward over 300k episodes:**
+![Training convergence](results2/phase2/plot5_convergence.png)
+
+Superseded plots from before the association fix, threading fix, and architecture change (including the old Plot 4, entropy coefficient, which is no longer meaningful once β=0) are archived in [`OLD/results/phase2/`](OLD/results/phase2/) for reference, not as current results.
+
 ---
 
 ## Team
