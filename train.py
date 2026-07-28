@@ -142,13 +142,12 @@ def make_env(beta: float = 0.0):
     return _init
 
 
-def train_uasac(timesteps: int = 300_000, beta: float = 0.0):
+def train_uasac(timesteps: int = 300_000, beta: float = 0.0, tag: str = "uasac_robust"):
     """beta=0 disables the rho-scaled entropy boost, isolating the
-    worst-case-reward mechanism alone — the entropy boost was adding a
-    second source of noise on top of the already-noisy M=5 worst-case
-    reward, and 100k steps wasn't enough budget for UA-SAC's harder,
-    noisier learning problem (random sigma + noisy state + noisy reward)
-    to converge to beat Baseline SAC's clean, easy training signal."""
+    worst-case-reward mechanism alone. tag controls the save name, so an
+    ablation run (e.g. beta=1 at the same 300k budget) doesn't overwrite
+    the working model — needed to isolate whether beta=0 or the extra
+    training budget is what actually fixed convergence."""
     N_ENVS = 4   # parallel env workers — leaves 4 cores for PyTorch training
     env = SubprocVecEnv([make_env(beta=beta) for _ in range(N_ENVS)])
 
@@ -165,11 +164,11 @@ def train_uasac(timesteps: int = 300_000, beta: float = 0.0):
 
     callback = RewardLogger()
     model.learn(total_timesteps=timesteps, callback=callback)
-    model.save("models/uasac_robust")
-    model.save_ent_history("results2/uasac_ent_history.npz")
-    np.save("results2/uasac_reward_history.npy", np.array(callback.episode_rewards))
+    model.save(f"models/{tag}")
+    model.save_ent_history(f"results2/{tag}_ent_history.npz")
+    np.save(f"results2/{tag}_reward_history.npy", np.array(callback.episode_rewards))
     env.close()
-    print("UA-SAC saved → models/uasac_robust")
+    print(f"UA-SAC saved → models/{tag}")
 
     window   = max(1, len(callback.episode_rewards) // 50)
     smoothed = np.convolve(callback.episode_rewards,
@@ -178,16 +177,24 @@ def train_uasac(timesteps: int = 300_000, beta: float = 0.0):
     plt.plot(smoothed, color="#8b5cf6", linewidth=2, label="UA-SAC (σ ~ U[0,10])")
     plt.xlabel("Episode", fontsize=12)
     plt.ylabel("Worst-Case Sum Secrecy (bps/Hz)", fontsize=12)
-    plt.title("UA-SAC Training Convergence", fontsize=11)
+    plt.title(f"UA-SAC Training Convergence (beta={beta})", fontsize=11)
     plt.legend(fontsize=10)
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.savefig("results2/uasac_convergence.png", dpi=150)
-    print("Saved: results2/uasac_convergence.png")
+    plt.savefig(f"results2/{tag}_convergence.png", dpi=150)
+    print(f"Saved: results2/{tag}_convergence.png")
 
 
 if __name__ == "__main__":
     # Baseline SAC already trained and verified working (models/sac_noise_0.0) —
-    # not retrained here, no reason to redo a model that's already solid.
-    print("=== Training UA-SAC: 300k steps, beta=0 (entropy boost disabled) ===")
-    train_uasac(timesteps=300_000, beta=0.0)
+    # not retrained here. models/uasac_robust (beta=0, 300k) is the current
+    # working result — also not retrained here, saved under its own tag so
+    # this ablation run can't overwrite it.
+    #
+    # Ablation: beta=1 (entropy boost back ON) at the SAME 300k budget as
+    # the working beta=0 run. Isolates whether beta=0 was the real fix, or
+    # whether the extra training budget alone would have been enough —
+    # the previous beta=0 vs beta=1 comparison changed both variables at
+    # once (100k steps vs 300k steps too), so it couldn't tell us which.
+    print("=== Ablation: UA-SAC, 300k steps, beta=1 (entropy boost ON) ===")
+    train_uasac(timesteps=300_000, beta=1.0, tag="uasac_beta1_300k")

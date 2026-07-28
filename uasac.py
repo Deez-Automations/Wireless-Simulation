@@ -27,8 +27,9 @@ class UASAC(SAC):
 
     Extra constructor args:
         beta (float): scaling coefficient for entropy modulation.
-                      α_eff = α_base * (1 + beta * rho_mean).
-                      beta=0 reduces to standard SAC.
+                      α_eff = α_base * (1 + beta * rho), applied per-sample
+                      using each transition's own stored rho, not a
+                      batch-average. beta=0 reduces to standard SAC.
     """
 
     def __init__(self, *args, beta: float = 1.0, **kwargs):

@@ -277,14 +277,23 @@ ax.fill_between(sigma_fine, norm_ua, norm_base,
                 alpha=0.15, color=COLOR_UASAC, label="UA-SAC robustness gain")
 ax.axhline(100, color="#999", linewidth=0.8, linestyle="--", alpha=0.5)
 
+# Labels are pushed AWAY from each other (not both toward the gap
+# between the lines) — whichever line is lower gets its label pushed
+# further down, whichever is higher gets pushed further up, so they
+# never crowd into the same space regardless of which line ends up on
+# top for a given run's results.
+ua_below_base = norm_ua[-1] < norm_base[-1]
+ua_offset   = -0.3 if ua_below_base else 0.3
+base_offset =  0.3 if ua_below_base else -0.3
+
 ax.annotate(f"−{drop_ua:.1f}%",
             xy=(10, norm_ua[-1]),
-            xytext=(8.5, norm_ua[-1] + 0.5),
+            xytext=(10.15, norm_ua[-1] + ua_offset),
             fontsize=10, color=COLOR_UASAC, fontweight="bold",
             arrowprops=dict(arrowstyle="->", color=COLOR_UASAC, lw=1.2))
 ax.annotate(f"−{drop_base:.1f}%",
             xy=(10, norm_base[-1]),
-            xytext=(8.5, norm_base[-1] - 1.5),
+            xytext=(10.15, norm_base[-1] + base_offset),
             fontsize=10, color=COLOR_BASELINE, fontweight="bold",
             arrowprops=dict(arrowstyle="->", color=COLOR_BASELINE, lw=1.2))
 
@@ -296,7 +305,7 @@ ax.legend(fontsize=10)
 ax.grid(True, alpha=0.25, linestyle="--")
 ax.set_xticks(sigma_fine)
 # zoom y-axis so the 0.5% difference looks meaningful
-ax.set_ylim(min(norm_base) - 0.3, 100.2)
+ax.set_ylim(min(min(norm_base), min(norm_ua)) - 0.6, 100.2)
 
 caption3 = ("Fig. 3: Secrecy capacity normalized to each agent's σ=0 performance (100%). "
             "Both agents start from the same reference point. UA-SAC degrades significantly "
