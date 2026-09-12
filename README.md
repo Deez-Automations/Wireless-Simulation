@@ -134,13 +134,8 @@ Baseline SAC trains in 100,000 timesteps; UA-SAC needs 300,000 to reach comparab
 │   ├── literature_notes.md   ← 30-paper verified literature review (working notes)
 │   ├── HANDOFF.md            ← Project journal / session log
 │   └── AP1.png               ← System model diagram
-├── reference papers/          ← Source PDFs for the 30-paper literature review
-├── Baseline_Paper/            ← Hoseini et al. (formal IEEE version)
 ├── dashboard/                  ← Interactive browser visualization (see below)
 ├── server.py                  ← Flask bridge, dashboard ↔ trained UA-SAC agent
-└── OLD/                        ← Archived: superseded drafts, legacy Phase-1 models, the
-                                   pre-fix results/ folder, the abandoned IRS proposal, and
-                                   other material kept for reference, not part of current work
 ```
 
 ---
