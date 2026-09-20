@@ -50,7 +50,7 @@ All current plots live in [`results2/phase2/`](results2/phase2/), generated from
 **UA-SAC training convergence, worst-case reward over 300k episodes:**
 ![Training convergence](results2/phase2/plot5_convergence.png)
 
-Superseded plots from before the association fix, threading fix, and architecture change (including the old Plot 4, entropy coefficient, which is no longer meaningful once β=0) are archived in [`OLD/results/phase2/`](OLD/results/phase2/) for reference, not as current results.
+Superseded plots from earlier development stages are retained in Git history rather than the current public tree.
 
 ---
 
@@ -134,13 +134,8 @@ Baseline SAC trains in 100,000 timesteps; UA-SAC needs 300,000 to reach comparab
 │   ├── literature_notes.md   ← 30-paper verified literature review (working notes)
 │   ├── HANDOFF.md            ← Project journal / session log
 │   └── AP1.png               ← System model diagram
-├── reference papers/          ← Source PDFs for the 30-paper literature review
-├── Baseline_Paper/            ← Hoseini et al. (formal IEEE version)
 ├── dashboard/                  ← Interactive browser visualization (see below)
 ├── server.py                  ← Flask bridge, dashboard ↔ trained UA-SAC agent
-└── OLD/                        ← Archived: superseded drafts, legacy Phase-1 models, the
-                                   pre-fix results/ folder, the abandoned IRS proposal, and
-                                   other material kept for reference, not part of current work
 ```
 
 ---
@@ -149,8 +144,8 @@ Baseline SAC trains in 100,000 timesteps; UA-SAC needs 300,000 to reach comparab
 
 ```bash
 # 1. Clone
-git clone https://github.com/Deez-Automations/Wireless-Simulation.git
-cd Wireless-Simulation
+git clone https://github.com/Mahad7836/CY315.git
+cd CY315
 
 # 2. Virtual environment
 python -m venv venv
@@ -183,3 +178,5 @@ python server.py
 ## References
 
 The full, verified 30-paper literature review — read individually, each with citation, mechanism, stated limitations, and direct comparison to this work — is in [`docs/literature_notes.md`](docs/literature_notes.md). The condensed version integrated into the paper itself is Section III of [`docs/final_report.tex`](docs/final_report.tex).
+
+Third-party research-paper PDFs are intentionally not redistributed in the current public tree; the literature notes and report retain the corresponding citations.
